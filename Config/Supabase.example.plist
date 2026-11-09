@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Copy to Nanglen_App/Resources/Supabase.plist (git-ignored) and fill in your project values.
+  Use the anon / publishable key ONLY. Never put the service_role key in the app.
+  Without this file the app runs against the local, clearly-labelled Demo backend.
+-->
+<plist version="1.0">
+<dict>
+    <key>SUPABASE_URL</key>
+    <string>https://YOUR-PROJECT-REF.supabase.co</string>
+    <key>SUPABASE_ANON_KEY</key>
+    <string>YOUR_ANON_OR_PUBLISHABLE_KEY</string>
+</dict>
+</plist>

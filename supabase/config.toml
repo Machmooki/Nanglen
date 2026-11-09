@@ -1,0 +1,60 @@
+# Supabase CLI configuration for LOCAL development (`supabase start`).
+# Production projects must be configured to match in the dashboard (see docs/PRODUCTION_DEPLOYMENT.md).
+project_id = "nanglen"
+
+[api]
+enabled = true
+port = 54321
+# Only `public` is exposed. `private` and `extensions` must never be added here.
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 100
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "nanglen://auth"
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+# Guests are anonymous auth users. Protect with CAPTCHA/rate limits in production.
+enable_anonymous_sign_ins = true
+# Required to link a phone identity to an anonymous user while keeping the same user id.
+enable_manual_linking = true
+
+[auth.rate_limit]
+anonymous_users = 30
+sms_sent = 30
+token_verifications = 30
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+max_frequency = "60s"
+# LOCAL ONLY test OTPs (never in production): phone number = code.
+[auth.sms.test_otp]
+66800000001 = "123456"
+66800000002 = "123456"
+
+[auth.email]
+enable_signup = false
+
+[storage]
+enabled = true
+file_size_limit = "5MiB"
+
+[storage.buckets.venue-submission-media]
+public = false
+file_size_limit = "5MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/heic", "image/webp"]
+
+[storage.buckets.review-media]
+public = false
+file_size_limit = "5MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/heic", "image/webp"]

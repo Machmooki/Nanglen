@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="tab-vc">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="collection view cell content view" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Tab Bar Controller-->
+        <scene sceneID="tab-scene">
+            <objects>
+                <tabBarController storyboardIdentifier="MainTabBarController" id="tab-vc" sceneMemberID="viewController">
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="tab-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="exn-nav" kind="relationship" relationship="viewControllers" id="tab-sg-1"/>
+                        <segue destination="svn-nav" kind="relationship" relationship="viewControllers" id="tab-sg-2"/>
+                        <segue destination="pfn-nav" kind="relationship" relationship="viewControllers" id="tab-sg-3"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="tab-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--สำรวจ-->
+        <scene sceneID="exn-scene">
+            <objects>
+                <navigationController storyboardIdentifier="ExploreNavigationController" id="exn-nav" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="สำรวจ" image="magnifyingglass" catalog="system" id="exn-nav-tbi"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="exn-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="exp-vc" kind="relationship" relationship="rootViewController" id="exn-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="exn-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--สำรวจ-->
+        <scene sceneID="exp-scene">
+            <objects>
+                <viewController storyboardIdentifier="ExploreViewController" id="exp-vc" customClass="ExploreViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="exp-view">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" keyboardDismissMode="onDrag" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="170" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="56" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="exp-table">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </tableView>
+                            <mapView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="exp-map">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                            </mapView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="exp-header">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="exp-title-row">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Nanglen" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="exp-title">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <fontDescription key="fontDescription" style="UICTFontTextStyleLargeTitle"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="exp-loading">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                            </activityIndicatorView>
+                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="exp-mode">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="100" id="c-014-nl"/>
+                                                </constraints>
+                                                <segments>
+                                                    <segment title="" image="list.bullet" catalog="system"/>
+                                                    <segment title="" image="map" catalog="system"/>
+                                                </segments>
+                                                <connections>
+                                                    <action selector="viewModeChanged:" destination="exp-vc" eventType="valueChanged" id="a-001-nl"/>
+                                                </connections>
+                                            </segmentedControl>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="exp-loc">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <buttonConfiguration key="configuration" style="plain" image="location" catalog="system" title="กรุงเทพฯ · แตะเพื่อใช้ตำแหน่งของคุณ"/>
+                                                <connections>
+                                                    <action selector="locationTapped:" destination="exp-vc" eventType="touchUpInside" id="a-002-nl"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstItem="exp-title" firstAttribute="leading" secondItem="exp-title-row" secondAttribute="leading" constant="20" id="c-003-nl"/>
+                                            <constraint firstItem="exp-title" firstAttribute="top" secondItem="exp-title-row" secondAttribute="top" constant="4" id="c-004-nl"/>
+                                            <constraint firstItem="exp-loading" firstAttribute="leading" secondItem="exp-title" secondAttribute="trailing" constant="10" id="c-005-nl"/>
+                                            <constraint firstItem="exp-loading" firstAttribute="centerY" secondItem="exp-title" secondAttribute="centerY" id="c-006-nl"/>
+                                            <constraint firstAttribute="trailing" secondItem="exp-mode" secondAttribute="trailing" constant="20" id="c-007-nl"/>
+                                            <constraint firstItem="exp-mode" firstAttribute="centerY" secondItem="exp-title" secondAttribute="centerY" id="c-008-nl"/>
+                                            <constraint firstItem="exp-mode" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="exp-loading" secondAttribute="trailing" constant="8" id="c-009-nl"/>
+                                            <constraint firstItem="exp-loc" firstAttribute="leading" secondItem="exp-title" secondAttribute="leading" id="c-010-nl"/>
+                                            <constraint firstItem="exp-loc" firstAttribute="top" secondItem="exp-title" secondAttribute="bottom" constant="2" id="c-011-nl"/>
+                                            <constraint firstAttribute="bottom" secondItem="exp-loc" secondAttribute="bottom" id="c-012-nl"/>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="exp-loc" secondAttribute="trailing" constant="20" id="c-013-nl"/>
+                                        </constraints>
+                                    </view>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="exp-search-row">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                        <subviews>
+                                            <searchBar contentMode="redraw" searchBarStyle="minimal" placeholder="ค้นหาคาเฟ่ ห้องสมุด หรือที่ทำงาน" translatesAutoresizingMaskIntoConstraints="NO" id="exp-search">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <textInputTraits key="textInputTraits" returnKeyType="search"/>
+                                            </searchBar>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="exp-filter">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="48" id="c-016-nl"/>
+                                                    <constraint firstAttribute="height" constant="48" id="c-017-nl"/>
+                                                </constraints>
+                                                <buttonConfiguration key="configuration" style="plain" image="slider.horizontal.3" catalog="system" title=""/>
+                                                <connections>
+                                                    <action selector="filterTapped:" destination="exp-vc" eventType="touchUpInside" id="a-015-nl"/>
+                                                </connections>
+                                            </button>
+                                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="exp-badge">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="18" id="c-018-nl"/>
+                                                    <constraint firstAttribute="height" constant="18" id="c-019-nl"/>
+                                                </constraints>
+                                                <fontDescription key="fontDescription" style="UICTFontTextStyleCaption2"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstItem="exp-search" firstAttribute="leading" secondItem="exp-search-row" secondAttribute="leading" constant="12" id="c-020-nl"/>
+                                            <constraint firstItem="exp-search" firstAttribute="top" secondItem="exp-search-row" secondAttribute="top" id="c-021-nl"/>
+                                            <constraint firstAttribute="bottom" secondItem="exp-search" secondAttribute="bottom" id="c-022-nl"/>
+                                            <constraint firstItem="exp-filter" firstAttribute="leading" secondItem="exp-search" secondAttribute="trailing" constant="4" id="c-023-nl"/>
+                                            <constraint firstAttribute="trailing" secondItem="exp-filter" secondAttribute="trailing" constant="20" id="c-024-nl"/>
+                                            <constraint firstItem="exp-filter" firstAttribute="centerY" secondItem="exp-search" secondAttribute="centerY" id="c-025-nl"/>
+                                            <constraint firstItem="exp-badge" firstAttribute="centerX" secondItem="exp-filter" secondAttribute="trailing" constant="-4" id="c-026-nl"/>
+                                            <constraint firstItem="exp-badge" firstAttribute="centerY" secondItem="exp-filter" secondAttribute="top" constant="4" id="c-027-nl"/>
+                                        </constraints>
+                                    </view>
+                                    <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="exp-chips">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="c-034-nl"/>
+                                        </constraints>
+                                        <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" automaticEstimatedItemSize="YES" minimumLineSpacing="8" minimumInteritemSpacing="8" id="exp-chips-layout">
+                                            <size key="itemSize" width="100" height="36"/>
+                                            <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                            <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                            <inset key="sectionInset" minX="20" minY="2" maxX="20" maxY="2"/>
+                                        </collectionViewFlowLayout>
+                                        <cells>
+                                            <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="CategoryChipCell" id="chip-cell" customClass="CategoryChipCell" customModule="Nanglen_App" customModuleProvider="target">
+                                                <rect key="frame" x="20" y="2" width="100" height="36"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="chip-content">
+                                                    <rect key="frame" x="0.0" y="0.0" width="100" height="36"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <subviews>
+                                                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="chip-stack">
+                                                            <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                            <subviews>
+                                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="sparkles" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="chip-icon">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                                </imageView>
+                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ทั้งหมด" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="chip-label">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                                                    <nil key="highlightedColor"/>
+                                                                </label>
+                                                            </subviews>
+                                                        </stackView>
+                                                    </subviews>
+                                                    <constraints>
+                                                        <constraint firstItem="chip-stack" firstAttribute="leading" secondItem="chip-content" secondAttribute="leading" constant="14" id="c-028-nl"/>
+                                                        <constraint firstAttribute="trailing" secondItem="chip-stack" secondAttribute="trailing" constant="14" id="c-029-nl"/>
+                                                        <constraint firstItem="chip-stack" firstAttribute="top" secondItem="chip-content" secondAttribute="top" constant="8" id="c-030-nl"/>
+                                                        <constraint firstAttribute="bottom" secondItem="chip-stack" secondAttribute="bottom" constant="8" id="c-031-nl"/>
+                                                    </constraints>
+                                                </collectionViewCellContentView>
+                                                <connections>
+                                                    <outlet property="iconImageView" destination="chip-icon" id="o-032-nl"/>
+                                                    <outlet property="titleLabel" destination="chip-label" id="o-033-nl"/>
+                                                </connections>
+                                            </collectionViewCell>
+                                        </cells>
+                                    </collectionView>
+                                    <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="exp-banner">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                        <subviews>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="exp-banner-card">
+                                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                <subviews>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="เชื่อมต่อ Apple Maps ไม่ได้" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="exp-banner-label">
+                                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                </subviews>
+                                                <color key="backgroundColor" name="CardBackground"/>
+                                                <constraints>
+                                                    <constraint firstItem="exp-banner-label" firstAttribute="top" secondItem="exp-banner-card" secondAttribute="top" constant="10" id="c-035-nl"/>
+                                                    <constraint firstItem="exp-banner-label" firstAttribute="leading" secondItem="exp-banner-card" secondAttribute="leading" constant="14" id="c-036-nl"/>
+                                                    <constraint firstAttribute="trailing" secondItem="exp-banner-label" secondAttribute="trailing" constant="14" id="c-037-nl"/>
+                                                    <constraint firstAttribute="bottom" secondItem="exp-banner-label" secondAttribute="bottom" constant="10" id="c-038-nl"/>
+                                                </constraints>
+                                            </view>
+                                        </subviews>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstItem="exp-banner-card" firstAttribute="top" secondItem="exp-banner" secondAttribute="top" id="c-039-nl"/>
+                                            <constraint firstItem="exp-banner-card" firstAttribute="leading" secondItem="exp-banner" secondAttribute="leading" constant="20" id="c-040-nl"/>
+                                            <constraint firstAttribute="trailing" secondItem="exp-banner-card" secondAttribute="trailing" constant="20" id="c-041-nl"/>
+                                            <constraint firstAttribute="bottom" secondItem="exp-banner-card" secondAttribute="bottom" id="c-042-nl"/>
+                                        </constraints>
+                                    </view>
+                                </subviews>
+                            </stackView>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="exp-area">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <buttonConfiguration key="configuration" style="plain" image="arrow.clockwise" catalog="system" title="ค้นหาบริเวณนี้"/>
+                                <connections>
+                                    <action selector="searchAreaTapped:" destination="exp-vc" eventType="touchUpInside" id="a-043-nl"/>
+                                </connections>
+                            </button>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="exp-locate">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="50" id="c-045-nl"/>
+                                    <constraint firstAttribute="height" constant="50" id="c-046-nl"/>
+                                </constraints>
+                                <buttonConfiguration key="configuration" style="plain" image="location.fill" catalog="system" title=""/>
+                                <connections>
+                                    <action selector="locateTapped:" destination="exp-vc" eventType="touchUpInside" id="a-044-nl"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="exp-safe"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints>
+                            <constraint firstItem="exp-header" firstAttribute="top" secondItem="exp-safe" secondAttribute="top" constant="4" id="c-047-nl"/>
+                            <constraint firstItem="exp-header" firstAttribute="leading" secondItem="exp-view" secondAttribute="leading" id="c-048-nl"/>
+                            <constraint firstAttribute="trailing" secondItem="exp-header" secondAttribute="trailing" id="c-049-nl"/>
+                            <constraint firstItem="exp-table" firstAttribute="top" secondItem="exp-header" secondAttribute="bottom" constant="6" id="c-050-nl"/>
+                            <constraint firstItem="exp-table" firstAttribute="leading" secondItem="exp-view" secondAttribute="leading" id="c-051-nl"/>
+                            <constraint firstAttribute="trailing" secondItem="exp-table" secondAttribute="trailing" id="c-052-nl"/>
+                            <constraint firstAttribute="bottom" secondItem="exp-table" secondAttribute="bottom" id="c-053-nl"/>
+                            <constraint firstItem="exp-map" firstAttribute="top" secondItem="exp-header" secondAttribute="bottom" constant="6" id="c-054-nl"/>
+                            <constraint firstItem="exp-map" firstAttribute="leading" secondItem="exp-view" secondAttribute="leading" id="c-055-nl"/>
+                            <constraint firstAttribute="trailing" secondItem="exp-map" secondAttribute="trailing" id="c-056-nl"/>
+                            <constraint firstAttribute="bottom" secondItem="exp-map" secondAttribute="bottom" id="c-057-nl"/>
+                            <constraint firstItem="exp-area" firstAttribute="top" secondItem="exp-map" secondAttribute="top" constant="12" id="c-058-nl"/>
+                            <constraint firstItem="exp-area" firstAttribute="centerX" secondItem="exp-map" secondAttribute="centerX" id="c-059-nl"/>
+                            <constraint firstItem="exp-safe" firstAttribute="trailing" secondItem="exp-locate" secondAttribute="trailing" constant="16" id="c-060-nl"/>
+                            <constraint firstItem="exp-safe" firstAttribute="bottom" secondItem="exp-locate" secondAttribute="bottom" constant="16" id="c-061-nl"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="สำรวจ" id="exp-navitem"/>
+                    <connections>
+                        <outlet property="bannerCardView" destination="exp-banner-card" id="o-071-nl"/>
+                        <outlet property="bannerLabel" destination="exp-banner-label" id="o-072-nl"/>
+                        <outlet property="bannerView" destination="exp-banner" id="o-070-nl"/>
+                        <outlet property="categoryCollectionView" destination="exp-chips" id="o-069-nl"/>
+                        <outlet property="filterBadgeLabel" destination="exp-badge" id="o-068-nl"/>
+                        <outlet property="filterButton" destination="exp-filter" id="o-067-nl"/>
+                        <outlet property="loadingIndicator" destination="exp-loading" id="o-063-nl"/>
+                        <outlet property="locateButton" destination="exp-locate" id="o-076-nl"/>
+                        <outlet property="locationButton" destination="exp-loc" id="o-065-nl"/>
+                        <outlet property="mapView" destination="exp-map" id="o-074-nl"/>
+                        <outlet property="searchAreaButton" destination="exp-area" id="o-075-nl"/>
+                        <outlet property="searchBar" destination="exp-search" id="o-066-nl"/>
+                        <outlet property="tableView" destination="exp-table" id="o-073-nl"/>
+                        <outlet property="titleLabel" destination="exp-title" id="o-062-nl"/>
+                        <outlet property="viewModeControl" destination="exp-mode" id="o-064-nl"/>
+                        <segue destination="det-vc" kind="show" identifier="showVenueDetail" id="exp-sg-detail"/><segue destination="add-nav" kind="presentation" identifier="presentAddPlace" id="exp-sg-add"/>
+                        <segue destination="fln-nav" kind="presentation" identifier="presentFilter" id="exp-sg-filter"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="exp-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--บันทึกไว้-->
+        <scene sceneID="svn-scene">
+            <objects>
+                <navigationController storyboardIdentifier="SavedNavigationController" id="svn-nav" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="บันทึกไว้" image="heart" catalog="system" selectedImage="heart.fill" id="svn-nav-tbi"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="svn-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="sav-vc" kind="relationship" relationship="rootViewController" id="svn-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="svn-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--บันทึกไว้-->
+        <scene sceneID="sav-scene">
+            <objects>
+                <viewController storyboardIdentifier="SavedViewController" id="sav-vc" customClass="SavedViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="sav-view">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="170" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="sav-table">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </tableView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="sav-safe"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints>
+                            <constraint firstItem="sav-table" firstAttribute="top" secondItem="sav-view" secondAttribute="top" id="c-263-nl"/>
+                            <constraint firstItem="sav-table" firstAttribute="leading" secondItem="sav-view" secondAttribute="leading" id="c-264-nl"/>
+                            <constraint firstAttribute="trailing" secondItem="sav-table" secondAttribute="trailing" id="c-265-nl"/>
+                            <constraint firstAttribute="bottom" secondItem="sav-table" secondAttribute="bottom" id="c-266-nl"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="บันทึกไว้" largeTitleDisplayMode="always" id="sav-navitem"/>
+                    <connections>
+                        <outlet property="tableView" destination="sav-table" id="o-267-nl"/>
+                        <segue destination="det-vc" kind="show" identifier="showVenueDetail" id="sav-sg-detail"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="sav-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--โปรไฟล์-->
+        <scene sceneID="pfn-scene">
+            <objects>
+                <navigationController storyboardIdentifier="ProfileNavigationController" id="pfn-nav" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="โปรไฟล์" image="person.crop.circle" catalog="system" selectedImage="person.crop.circle.fill" id="pfn-nav-tbi"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="pfn-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="prf-vc" kind="relationship" relationship="rootViewController" id="pfn-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="pfn-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--โปรไฟล์-->
+        <scene sceneID="prf-scene">
+            <objects>
+                <tableViewController storyboardIdentifier="ProfileViewController" id="prf-vc" customClass="ProfileViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="56" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="prf-table">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" reuseIdentifier="ProfileHeaderCell" id="prf-header-cell" customClass="ProfileHeaderCell" customModule="Nanglen_App" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="prf-header-cell" id="prf-header-content">
+                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="prf-avatar">
+                                            <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                            <subviews>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="prf-avatar-img">
+                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                </imageView>
+                                            </subviews>
+                                            <color key="backgroundColor" name="BrandSoft"/>
+                                            <constraints>
+                                                <constraint firstItem="prf-avatar-img" firstAttribute="centerX" secondItem="prf-avatar" secondAttribute="centerX" id="c-268-nl"/>
+                                                <constraint firstItem="prf-avatar-img" firstAttribute="centerY" secondItem="prf-avatar" secondAttribute="centerY" id="c-269-nl"/>
+                                                <constraint firstAttribute="width" constant="64" id="c-270-nl"/>
+                                                <constraint firstAttribute="height" constant="64" id="c-271-nl"/>
+                                            </constraints>
+                                        </view>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="prf-text">
+                                            <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ผู้ใช้ Guest" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="prf-name">
+                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="รหัสอุปกรณ์" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="prf-id">
+                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ใช้งานตั้งแต่" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="prf-since">
+                                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </stackView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="prf-avatar" firstAttribute="leading" secondItem="prf-header-content" secondAttribute="leading" constant="16" id="c-272-nl"/>
+                                        <constraint firstItem="prf-avatar" firstAttribute="top" secondItem="prf-header-content" secondAttribute="top" constant="14" id="c-273-nl"/>
+                                        <constraint firstAttribute="bottom" secondItem="prf-avatar" secondAttribute="bottom" priority="999" constant="14" id="c-274-nl"/>
+                                        <constraint firstItem="prf-text" firstAttribute="leading" secondItem="prf-avatar" secondAttribute="trailing" constant="16" id="c-275-nl"/>
+                                        <constraint firstAttribute="trailing" secondItem="prf-text" secondAttribute="trailing" constant="16" id="c-276-nl"/>
+                                        <constraint firstItem="prf-text" firstAttribute="centerY" secondItem="prf-avatar" secondAttribute="centerY" id="c-277-nl"/>
+                                        <constraint firstItem="prf-text" firstAttribute="top" relation="greaterThanOrEqual" secondItem="prf-header-content" secondAttribute="top" constant="10" id="c-278-nl"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <outlet property="avatarImageView" destination="prf-avatar-img" id="o-280-nl"/>
+                                    <outlet property="avatarView" destination="prf-avatar" id="o-279-nl"/>
+                                    <outlet property="identifierLabel" destination="prf-id" id="o-282-nl"/>
+                                    <outlet property="nameLabel" destination="prf-name" id="o-281-nl"/>
+                                    <outlet property="sinceLabel" destination="prf-since" id="o-283-nl"/>
+                                </connections>
+                            </tableViewCell>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ProfileValueCell" id="prf-value-cell">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="prf-value-cell" id="prf-value-content">
+                                    <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="prf-vc" id="o-284-nl"/>
+                            <outlet property="delegate" destination="prf-vc" id="o-285-nl"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="โปรไฟล์" largeTitleDisplayMode="always" id="prf-navitem"/><connections><segue destination="phl-nav" kind="presentation" identifier="presentPhoneLink" id="sg-0357"/><segue destination="add-nav" kind="presentation" identifier="presentAddPlace" id="sg-0358"/><segue destination="sub-vc" kind="show" identifier="showMySubmissions" id="sg-0359"/><segue destination="adm-vc" kind="show" identifier="showAdminQueue" id="sg-0360"/></connections>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="prf-scene-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="fln-nav-scene">
+            <objects>
+                <navigationController storyboardIdentifier="FilterNavigationController" id="fln-nav" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="fln-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="flt-vc" kind="relationship" relationship="rootViewController" id="fln-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="fln-nav-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="flt-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="FilterViewController" id="flt-vc" customClass="FilterViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0020">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0021">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0023"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="เรียงตาม" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0001"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0002"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><segments><segment title="a"/><segment title="b"/><segment title="c"/></segments><connections><action selector="sortChanged:" destination="flt-vc" eventType="valueChanged" id="a-0003"/></connections></segmentedControl><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ระยะทาง" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0004"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0005"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><segments><segment title="a"/><segment title="b"/><segment title="c"/><segment title="d"/></segments><connections><action selector="distanceChanged:" destination="flt-vc" eventType="valueChanged" id="a-0006"/></connections></segmentedControl><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="คะแนนขั้นต่ำ" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0007"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0008"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><segments><segment title="a"/><segment title="b"/><segment title="c"/><segment title="d"/></segments><connections><action selector="ratingChanged:" destination="flt-vc" eventType="valueChanged" id="a-0009"/></connections></segmentedControl><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0010"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sp-0011"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" constant="8" id="c-0012"/></constraints><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0013"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0014"/></constraints><buttonConfiguration key="configuration" style="plain" title="ดูผลลัพธ์"/><connections><action selector="applyTapped:" destination="flt-vc" eventType="touchUpInside" id="a-0015"/></connections></button></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0023" firstAttribute="top" secondItem="scroll-0021" secondAttribute="top" constant="16" id="c-0028"/><constraint firstItem="stk-0023" firstAttribute="leading" secondItem="scroll-0021" secondAttribute="leading" constant="20" id="c-0029"/><constraint firstItem="scroll-0021" firstAttribute="trailing" secondItem="stk-0023" secondAttribute="trailing" constant="20" id="c-0030"/><constraint firstItem="scroll-0021" firstAttribute="bottom" secondItem="stk-0023" secondAttribute="bottom" constant="32" id="c-0031"/><constraint firstItem="stk-0023" firstAttribute="width" secondItem="scroll-0021" secondAttribute="width" constant="-40" id="c-0032"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0022"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0021" firstAttribute="top" secondItem="safe-0022" secondAttribute="top" id="c-0024"/><constraint firstItem="scroll-0021" firstAttribute="leading" secondItem="view-0020" secondAttribute="leading" id="c-0025"/><constraint firstItem="view-0020" firstAttribute="trailing" secondItem="scroll-0021" secondAttribute="trailing" id="c-0026"/><constraint firstItem="view-0020" firstAttribute="bottom" secondItem="scroll-0021" secondAttribute="bottom" id="c-0027"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="ตัวกรอง" largeTitleDisplayMode="never" id="ni-0041"><barButtonItem key="leftBarButtonItem" title="รีเซ็ต" id="bbi-0016"><connections><action selector="resetTapped:" destination="flt-vc" id="a-0017"/></connections></barButtonItem><barButtonItem key="rightBarButtonItem" systemItem="cancel" id="bbi-0018"><connections><action selector="closeTapped:" destination="flt-vc" id="a-0019"/></connections></barButtonItem></navigationItem>
+                    <connections><outlet property="sortTitleLabel" destination="lbl-0001" id="o-0033"/><outlet property="sortControl" destination="seg-0002" id="o-0034"/><outlet property="distanceTitleLabel" destination="lbl-0004" id="o-0035"/><outlet property="distanceControl" destination="seg-0005" id="o-0036"/><outlet property="ratingTitleLabel" destination="lbl-0007" id="o-0037"/><outlet property="ratingControl" destination="seg-0008" id="o-0038"/><outlet property="footnoteLabel" destination="lbl-0010" id="o-0039"/><outlet property="applyButton" destination="btn-0013" id="o-0040"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="flt-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="det-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="VenueDetailViewController" id="det-vc" customClass="VenueDetailViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0081">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0082">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0084"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="map-0049"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" constant="180" id="c-0050"/></constraints></mapView><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0055"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ชื่อสถานที่" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0051"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0052"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0053"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0054"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label></subviews></stackView><stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0048"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0042"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0043"/></constraints><buttonConfiguration key="configuration" style="plain" title="เส้นทาง"/><connections><action selector="directionsTapped:" destination="det-vc" eventType="touchUpInside" id="a-0044"/></connections></button><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0045"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0046"/></constraints><buttonConfiguration key="configuration" style="plain" title="เขียนรีวิว"/><connections><action selector="writeReviewTapped:" destination="det-vc" eventType="touchUpInside" id="a-0047"/></connections></button></subviews></stackView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0056"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0057"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews></subviews></stackView><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0061"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ผู้มาเยือนบอกว่า" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0058"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0059"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cv-0060" customClass="TagPillsView" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view></subviews></stackView><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0069"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="รีวิว" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0062"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0063"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><segments><segment title="a"/><segment title="b"/></segments><connections><action selector="reviewSortChanged:" destination="det-vc" eventType="valueChanged" id="a-0064"/></connections></segmentedControl><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0065"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/><nil key="highlightedColor"/></label><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0066"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews></subviews></stackView><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0067"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><buttonConfiguration key="configuration" style="plain" title="โหลดเพิ่ม"/><connections><action selector="loadMoreReviewsTapped:" destination="det-vc" eventType="touchUpInside" id="a-0068"/></connections></button></subviews></stackView><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0073"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ข้อมูลสถานที่" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0070"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0071"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews></subviews></stackView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0072"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><nil key="highlightedColor"/></label></subviews></stackView><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0074"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><buttonConfiguration key="configuration" style="plain" title="ขอยืนยันความเป็นเจ้าของ"/><connections><action selector="claimTapped:" destination="det-vc" eventType="touchUpInside" id="a-0075"/></connections></button></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0084" firstAttribute="top" secondItem="scroll-0082" secondAttribute="top" constant="16" id="c-0089"/><constraint firstItem="stk-0084" firstAttribute="leading" secondItem="scroll-0082" secondAttribute="leading" constant="20" id="c-0090"/><constraint firstItem="scroll-0082" firstAttribute="trailing" secondItem="stk-0084" secondAttribute="trailing" constant="20" id="c-0091"/><constraint firstItem="scroll-0082" firstAttribute="bottom" secondItem="stk-0084" secondAttribute="bottom" constant="32" id="c-0092"/><constraint firstItem="stk-0084" firstAttribute="width" secondItem="scroll-0082" secondAttribute="width" constant="-40" id="c-0093"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0083"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0082" firstAttribute="top" secondItem="safe-0083" secondAttribute="top" id="c-0085"/><constraint firstItem="scroll-0082" firstAttribute="leading" secondItem="view-0081" secondAttribute="leading" id="c-0086"/><constraint firstItem="view-0081" firstAttribute="trailing" secondItem="scroll-0082" secondAttribute="trailing" id="c-0087"/><constraint firstItem="view-0081" firstAttribute="bottom" secondItem="scroll-0082" secondAttribute="bottom" id="c-0088"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="" largeTitleDisplayMode="never" id="ni-0117"><barButtonItem key="rightBarButtonItem" image="heart" catalog="system" id="bbi-0076"><connections><action selector="favoriteTapped:" destination="det-vc" id="a-0077"/></connections></barButtonItem></navigationItem>
+                    <connections><outlet property="directionsButton" destination="btn-0042" id="o-0094"/><outlet property="writeReviewButton" destination="btn-0045" id="o-0095"/><outlet property="heroMapView" destination="map-0049" id="o-0096"/><outlet property="nameLabel" destination="lbl-0051" id="o-0097"/><outlet property="metaLabel" destination="lbl-0052" id="o-0098"/><outlet property="ratingLabel" destination="lbl-0053" id="o-0099"/><outlet property="addressLabel" destination="lbl-0054" id="o-0100"/><outlet property="myReviewLabel" destination="lbl-0056" id="o-0101"/><outlet property="galleryStackView" destination="stk-0057" id="o-0102"/><outlet property="tagsTitleLabel" destination="lbl-0058" id="o-0103"/><outlet property="tagsNoteLabel" destination="lbl-0059" id="o-0104"/><outlet property="tagsView" destination="cv-0060" id="o-0105"/><outlet property="reviewsTitleLabel" destination="lbl-0062" id="o-0106"/><outlet property="reviewSortControl" destination="seg-0063" id="o-0107"/><outlet property="emptyReviewsLabel" destination="lbl-0065" id="o-0108"/><outlet property="reviewsStackView" destination="stk-0066" id="o-0109"/><outlet property="loadMoreReviewsButton" destination="btn-0067" id="o-0110"/><outlet property="infoTitleLabel" destination="lbl-0070" id="o-0111"/><outlet property="infoStackView" destination="stk-0071" id="o-0112"/><outlet property="sourceLabel" destination="lbl-0072" id="o-0113"/><outlet property="claimButton" destination="btn-0074" id="o-0114"/><outlet property="favoriteBarButton" destination="bbi-0076" id="o-0115"/><outlet property="scrollView" destination="scroll-0082" id="o-0116"/><segue destination="rvc-nav" kind="presentation" identifier="presentReviewComposer" id="sg-0078"/><segue destination="phl-nav" kind="presentation" identifier="presentPhoneLink" id="sg-0079"/><segue destination="clm-nav" kind="presentation" identifier="presentClaim" id="sg-0080"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="det-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="rvc-nav-scene">
+            <objects>
+                <navigationController storyboardIdentifier="ReviewComposerNavigationController" id="rvc-nav" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="rvc-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="rvc-vc" kind="relationship" relationship="rootViewController" id="rvc-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="rvc-nav-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="rvc-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="ReviewComposerViewController" id="rvc-vc" customClass="ReviewComposerViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0145">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0146">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0148"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0136"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleTitle3"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cv-0137" customClass="VerificationStatusView" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="76" id="c-0138"/></constraints><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0135"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ให้คะแนนโดยรวม" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0118"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><control opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="ctl-0119" customClass="StarRatingControl" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="70" id="c-0120"/></constraints><connections><action selector="ratingChanged:" destination="rvc-vc" eventType="valueChanged" id="a-0121"/></connections></control><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="มาทำอะไร?" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0122"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cv-0123" customClass="ChipGroupView" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="32" id="c-0124"/></constraints><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="อะไรโดดเด่น?" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0125"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cv-0126" customClass="ChipGroupView" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="32" id="c-0127"/></constraints><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ความคิดเห็น" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0128"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="tv-0129"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="110" id="c-0130"/></constraints><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits" autocapitalizationType="sentences"/></textView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0/500" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0131"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="รูปภาพ" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0132"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cv-0133" customClass="PhotoStripView" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="84" id="c-0134"/></constraints><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view></subviews></stackView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0139"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0140"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0141"/></constraints><buttonConfiguration key="configuration" style="plain" title="เผยแพร่รีวิว"/><connections><action selector="submitTapped:" destination="rvc-vc" eventType="touchUpInside" id="a-0142"/></connections></button></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0148" firstAttribute="top" secondItem="scroll-0146" secondAttribute="top" constant="16" id="c-0153"/><constraint firstItem="stk-0148" firstAttribute="leading" secondItem="scroll-0146" secondAttribute="leading" constant="20" id="c-0154"/><constraint firstItem="scroll-0146" firstAttribute="trailing" secondItem="stk-0148" secondAttribute="trailing" constant="20" id="c-0155"/><constraint firstItem="scroll-0146" firstAttribute="bottom" secondItem="stk-0148" secondAttribute="bottom" constant="32" id="c-0156"/><constraint firstItem="stk-0148" firstAttribute="width" secondItem="scroll-0146" secondAttribute="width" constant="-40" id="c-0157"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0147"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0146" firstAttribute="top" secondItem="safe-0147" secondAttribute="top" id="c-0149"/><constraint firstItem="scroll-0146" firstAttribute="leading" secondItem="view-0145" secondAttribute="leading" id="c-0150"/><constraint firstItem="view-0145" firstAttribute="trailing" secondItem="scroll-0146" secondAttribute="trailing" id="c-0151"/><constraint firstItem="view-0145" firstAttribute="bottom" secondItem="scroll-0146" secondAttribute="bottom" id="c-0152"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="เขียนรีวิว" largeTitleDisplayMode="never" id="ni-0175"><barButtonItem key="leftBarButtonItem" systemItem="cancel" id="bbi-0143"><connections><action selector="cancelTapped:" destination="rvc-vc" id="a-0144"/></connections></barButtonItem></navigationItem>
+                    <connections><outlet property="ratingTitleLabel" destination="lbl-0118" id="o-0158"/><outlet property="ratingControl" destination="ctl-0119" id="o-0159"/><outlet property="purposeTitleLabel" destination="lbl-0122" id="o-0160"/><outlet property="purposeChips" destination="cv-0123" id="o-0161"/><outlet property="tagsTitleLabel" destination="lbl-0125" id="o-0162"/><outlet property="tagsChips" destination="cv-0126" id="o-0163"/><outlet property="commentTitleLabel" destination="lbl-0128" id="o-0164"/><outlet property="commentTextView" destination="tv-0129" id="o-0165"/><outlet property="commentCountLabel" destination="lbl-0131" id="o-0166"/><outlet property="photosTitleLabel" destination="lbl-0132" id="o-0167"/><outlet property="photoStrip" destination="cv-0133" id="o-0168"/><outlet property="formStackView" destination="stk-0135" id="o-0169"/><outlet property="venueNameLabel" destination="lbl-0136" id="o-0170"/><outlet property="verificationView" destination="cv-0137" id="o-0171"/><outlet property="noticeLabel" destination="lbl-0139" id="o-0172"/><outlet property="submitButton" destination="btn-0140" id="o-0173"/><outlet property="scrollView" destination="scroll-0146" id="o-0174"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="rvc-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="phl-nav-scene">
+            <objects>
+                <navigationController storyboardIdentifier="PhoneLinkNavigationController" id="phl-nav" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="phl-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="phl-vc" kind="relationship" relationship="rootViewController" id="phl-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="phl-nav-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="phl-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="PhoneLinkViewController" id="phl-vc" customClass="PhoneLinkViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0189">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0190">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0192"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0176"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/><nil key="highlightedColor"/></label><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="เบอร์โทรศัพท์" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0177"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0178"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0179"/></constraints><buttonConfiguration key="configuration" style="plain" title="ส่งรหัส OTP"/><connections><action selector="sendCodeTapped:" destination="phl-vc" eventType="touchUpInside" id="a-0180"/></connections></button><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="รหัส 6 หลัก" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0181"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0182"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0183"/></constraints><buttonConfiguration key="configuration" style="plain" title="ยืนยันรหัส"/><connections><action selector="verifyTapped:" destination="phl-vc" eventType="touchUpInside" id="a-0184"/></connections></button><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0185"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0186"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0192" firstAttribute="top" secondItem="scroll-0190" secondAttribute="top" constant="16" id="c-0197"/><constraint firstItem="stk-0192" firstAttribute="leading" secondItem="scroll-0190" secondAttribute="leading" constant="20" id="c-0198"/><constraint firstItem="scroll-0190" firstAttribute="trailing" secondItem="stk-0192" secondAttribute="trailing" constant="20" id="c-0199"/><constraint firstItem="scroll-0190" firstAttribute="bottom" secondItem="stk-0192" secondAttribute="bottom" constant="32" id="c-0200"/><constraint firstItem="stk-0192" firstAttribute="width" secondItem="scroll-0190" secondAttribute="width" constant="-40" id="c-0201"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0191"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0190" firstAttribute="top" secondItem="safe-0191" secondAttribute="top" id="c-0193"/><constraint firstItem="scroll-0190" firstAttribute="leading" secondItem="view-0189" secondAttribute="leading" id="c-0194"/><constraint firstItem="view-0189" firstAttribute="trailing" secondItem="scroll-0190" secondAttribute="trailing" id="c-0195"/><constraint firstItem="view-0189" firstAttribute="bottom" secondItem="scroll-0190" secondAttribute="bottom" id="c-0196"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="ยืนยันเบอร์โทรศัพท์" largeTitleDisplayMode="never" id="ni-0209"><barButtonItem key="leftBarButtonItem" systemItem="cancel" id="bbi-0187"><connections><action selector="closeTapped:" destination="phl-vc" id="a-0188"/></connections></barButtonItem></navigationItem>
+                    <connections><outlet property="introLabel" destination="lbl-0176" id="o-0202"/><outlet property="phoneTextField" destination="tf-0177" id="o-0203"/><outlet property="sendCodeButton" destination="btn-0178" id="o-0204"/><outlet property="codeTextField" destination="tf-0181" id="o-0205"/><outlet property="verifyButton" destination="btn-0182" id="o-0206"/><outlet property="statusLabel" destination="lbl-0185" id="o-0207"/><outlet property="demoHintLabel" destination="lbl-0186" id="o-0208"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="phl-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="add-nav-scene">
+            <objects>
+                <navigationController storyboardIdentifier="AddPlaceNavigationController" id="add-nav" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="add-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="add-vc" kind="relationship" relationship="rootViewController" id="add-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="add-nav-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="add-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="AddPlaceViewController" id="add-vc" customClass="AddPlaceViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0236">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0237">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0239"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0210"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/><nil key="highlightedColor"/></label><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0211"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="46" id="c-0212"/></constraints><buttonConfiguration key="configuration" style="plain" title="ค้นหาใน Apple Maps"/><connections><action selector="searchMapsTapped:" destination="add-vc" eventType="touchUpInside" id="a-0213"/></connections></button><mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="map-0214"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" constant="220" id="c-0215"/></constraints></mapView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0216"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><nil key="highlightedColor"/></label><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="ชื่อสถานที่" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0217"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ประเภท" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0218"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0219"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><segments><segment title="a"/><segment title="b"/><segment title="c"/><segment title="d"/><segment title="e"/></segments><connections><action selector="categoryChanged:" destination="add-vc" eventType="valueChanged" id="a-0220"/></connections></segmentedControl><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="ที่อยู่" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0221"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="tv-0222"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="90" id="c-0223"/></constraints><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits" autocapitalizationType="sentences"/></textView><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="เว็บไซต์" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0224"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="เบอร์ติดต่อ" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0225"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="ข้อความถึงทีมงาน" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0226"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="รูปภาพ" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0227"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cv-0228" customClass="PhotoStripView" customModule="Nanglen_App" customModuleProvider="target"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="84" id="c-0229"/></constraints><color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0230"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0231"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0232"/></constraints><buttonConfiguration key="configuration" style="plain" title="ส่งให้ทีมงานตรวจสอบ"/><connections><action selector="submitTapped:" destination="add-vc" eventType="touchUpInside" id="a-0233"/></connections></button></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0239" firstAttribute="top" secondItem="scroll-0237" secondAttribute="top" constant="16" id="c-0244"/><constraint firstItem="stk-0239" firstAttribute="leading" secondItem="scroll-0237" secondAttribute="leading" constant="20" id="c-0245"/><constraint firstItem="scroll-0237" firstAttribute="trailing" secondItem="stk-0239" secondAttribute="trailing" constant="20" id="c-0246"/><constraint firstItem="scroll-0237" firstAttribute="bottom" secondItem="stk-0239" secondAttribute="bottom" constant="32" id="c-0247"/><constraint firstItem="stk-0239" firstAttribute="width" secondItem="scroll-0237" secondAttribute="width" constant="-40" id="c-0248"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0238"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0237" firstAttribute="top" secondItem="safe-0238" secondAttribute="top" id="c-0240"/><constraint firstItem="scroll-0237" firstAttribute="leading" secondItem="view-0236" secondAttribute="leading" id="c-0241"/><constraint firstItem="view-0236" firstAttribute="trailing" secondItem="scroll-0237" secondAttribute="trailing" id="c-0242"/><constraint firstItem="view-0236" firstAttribute="bottom" secondItem="scroll-0237" secondAttribute="bottom" id="c-0243"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="แนะนำสถานที่" largeTitleDisplayMode="never" id="ni-0266"><barButtonItem key="leftBarButtonItem" systemItem="cancel" id="bbi-0234"><connections><action selector="cancelTapped:" destination="add-vc" id="a-0235"/></connections></barButtonItem></navigationItem>
+                    <connections><outlet property="introLabel" destination="lbl-0210" id="o-0249"/><outlet property="searchMapsButton" destination="btn-0211" id="o-0250"/><outlet property="mapView" destination="map-0214" id="o-0251"/><outlet property="pinHintLabel" destination="lbl-0216" id="o-0252"/><outlet property="nameTextField" destination="tf-0217" id="o-0253"/><outlet property="categoryTitleLabel" destination="lbl-0218" id="o-0254"/><outlet property="categoryControl" destination="seg-0219" id="o-0255"/><outlet property="addressTextField" destination="tf-0221" id="o-0256"/><outlet property="descriptionTextView" destination="tv-0222" id="o-0257"/><outlet property="websiteTextField" destination="tf-0224" id="o-0258"/><outlet property="phoneTextField" destination="tf-0225" id="o-0259"/><outlet property="noteTextField" destination="tf-0226" id="o-0260"/><outlet property="photosTitleLabel" destination="lbl-0227" id="o-0261"/><outlet property="photoStrip" destination="cv-0228" id="o-0262"/><outlet property="issuesLabel" destination="lbl-0230" id="o-0263"/><outlet property="submitButton" destination="btn-0231" id="o-0264"/><outlet property="scrollView" destination="scroll-0237" id="o-0265"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="add-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="clm-nav-scene">
+            <objects>
+                <navigationController storyboardIdentifier="ClaimNavigationController" id="clm-nav" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="clm-nav-bar">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="clm-vc" kind="relationship" relationship="rootViewController" id="clm-nav-root"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="clm-nav-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="clm-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="ClaimVenueViewController" id="clm-vc" customClass="ClaimVenueViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0280">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0281">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0283"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0267"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/><nil key="highlightedColor"/></label><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="ชื่อธุรกิจ" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0268"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="บทบาท" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0269"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0270"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><segments><segment title="a"/><segment title="b"/><segment title="c"/></segments><connections><action selector="roleChanged:" destination="clm-vc" eventType="valueChanged" id="a-0271"/></connections></segmentedControl><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="ช่องทางติดต่อ" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0272"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="หลักฐาน" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0273"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits"/></textField><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0274"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0275"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0276"/></constraints><buttonConfiguration key="configuration" style="plain" title="ส่งคำขอ"/><connections><action selector="submitTapped:" destination="clm-vc" eventType="touchUpInside" id="a-0277"/></connections></button></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0283" firstAttribute="top" secondItem="scroll-0281" secondAttribute="top" constant="16" id="c-0288"/><constraint firstItem="stk-0283" firstAttribute="leading" secondItem="scroll-0281" secondAttribute="leading" constant="20" id="c-0289"/><constraint firstItem="scroll-0281" firstAttribute="trailing" secondItem="stk-0283" secondAttribute="trailing" constant="20" id="c-0290"/><constraint firstItem="scroll-0281" firstAttribute="bottom" secondItem="stk-0283" secondAttribute="bottom" constant="32" id="c-0291"/><constraint firstItem="stk-0283" firstAttribute="width" secondItem="scroll-0281" secondAttribute="width" constant="-40" id="c-0292"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0282"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0281" firstAttribute="top" secondItem="safe-0282" secondAttribute="top" id="c-0284"/><constraint firstItem="scroll-0281" firstAttribute="leading" secondItem="view-0280" secondAttribute="leading" id="c-0285"/><constraint firstItem="view-0280" firstAttribute="trailing" secondItem="scroll-0281" secondAttribute="trailing" id="c-0286"/><constraint firstItem="view-0280" firstAttribute="bottom" secondItem="scroll-0281" secondAttribute="bottom" id="c-0287"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="ยืนยันความเป็นเจ้าของ" largeTitleDisplayMode="never" id="ni-0301"><barButtonItem key="leftBarButtonItem" systemItem="cancel" id="bbi-0278"><connections><action selector="cancelTapped:" destination="clm-vc" id="a-0279"/></connections></barButtonItem></navigationItem>
+                    <connections><outlet property="introLabel" destination="lbl-0267" id="o-0293"/><outlet property="businessNameTextField" destination="tf-0268" id="o-0294"/><outlet property="roleTitleLabel" destination="lbl-0269" id="o-0295"/><outlet property="roleControl" destination="seg-0270" id="o-0296"/><outlet property="contactTextField" destination="tf-0272" id="o-0297"/><outlet property="evidenceTextField" destination="tf-0273" id="o-0298"/><outlet property="statusLabel" destination="lbl-0274" id="o-0299"/><outlet property="submitButton" destination="btn-0275" id="o-0300"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="clm-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="sub-vc-scene">
+            <objects>
+                <tableViewController storyboardIdentifier="MySubmissionsViewController" id="sub-vc" customClass="MySubmissionsViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="64" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="tbl-0302">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <connections>
+                            <outlet property="dataSource" destination="sub-vc" id="o-0303"/>
+                            <outlet property="delegate" destination="sub-vc" id="o-0304"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="สถานที่ที่ฉันแนะนำ" largeTitleDisplayMode="never" id="ni-0305"/>
+                    
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="sub-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="adm-vc-scene">
+            <objects>
+                <tableViewController storyboardIdentifier="AdminQueueViewController" id="adm-vc" customClass="AdminQueueViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="64" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="tbl-0307">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <connections>
+                            <outlet property="dataSource" destination="adm-vc" id="o-0308"/>
+                            <outlet property="delegate" destination="adm-vc" id="o-0309"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="คิวตรวจสอบ" largeTitleDisplayMode="never" id="ni-0310"/>
+                    <connections><segue destination="ads-vc" kind="show" identifier="showAdminSubmission" id="sg-0306"/></connections>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="adm-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="ads-vc-scene">
+            <objects>
+                <viewController storyboardIdentifier="AdminSubmissionViewController" id="ads-vc" customClass="AdminSubmissionViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-0331">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0332">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0334"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="map-0311"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" constant="200" id="c-0312"/></constraints></mapView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0313"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0314"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0315"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0316"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews></subviews></stackView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="สถานที่ใกล้เคียง" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0317"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/><nil key="highlightedColor"/></label><stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0318"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews></subviews></stackView><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0319"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/><nil key="highlightedColor"/></label><label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0320"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/><nil key="highlightedColor"/></label><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0321"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0322"/></constraints><buttonConfiguration key="configuration" style="plain" title="อนุมัติ"/><connections><action selector="approveTapped:" destination="ads-vc" eventType="touchUpInside" id="a-0323"/></connections></button><stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0330"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><subviews><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0324"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="46" id="c-0325"/></constraints><buttonConfiguration key="configuration" style="plain" title="ขอให้แก้ไข"/><connections><action selector="changesTapped:" destination="ads-vc" eventType="touchUpInside" id="a-0326"/></connections></button><button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0327"><rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/><constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="46" id="c-0328"/></constraints><buttonConfiguration key="configuration" style="plain" title="ไม่อนุมัติ"/><connections><action selector="rejectTapped:" destination="ads-vc" eventType="touchUpInside" id="a-0329"/></connections></button></subviews></stackView></subviews></stackView></subviews>
+                                <constraints><constraint firstItem="stk-0334" firstAttribute="top" secondItem="scroll-0332" secondAttribute="top" constant="16" id="c-0339"/><constraint firstItem="stk-0334" firstAttribute="leading" secondItem="scroll-0332" secondAttribute="leading" constant="20" id="c-0340"/><constraint firstItem="scroll-0332" firstAttribute="trailing" secondItem="stk-0334" secondAttribute="trailing" constant="20" id="c-0341"/><constraint firstItem="scroll-0332" firstAttribute="bottom" secondItem="stk-0334" secondAttribute="bottom" constant="32" id="c-0342"/><constraint firstItem="stk-0334" firstAttribute="width" secondItem="scroll-0332" secondAttribute="width" constant="-40" id="c-0343"/></constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-0333"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints><constraint firstItem="scroll-0332" firstAttribute="top" secondItem="safe-0333" secondAttribute="top" id="c-0335"/><constraint firstItem="scroll-0332" firstAttribute="leading" secondItem="view-0331" secondAttribute="leading" id="c-0336"/><constraint firstItem="view-0331" firstAttribute="trailing" secondItem="scroll-0332" secondAttribute="trailing" id="c-0337"/><constraint firstItem="view-0331" firstAttribute="bottom" secondItem="scroll-0332" secondAttribute="bottom" id="c-0338"/></constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="" largeTitleDisplayMode="never" id="ni-0356"></navigationItem>
+                    <connections><outlet property="mapView" destination="map-0311" id="o-0344"/><outlet property="nameLabel" destination="lbl-0313" id="o-0345"/><outlet property="detailsLabel" destination="lbl-0314" id="o-0346"/><outlet property="submitterLabel" destination="lbl-0315" id="o-0347"/><outlet property="photosStackView" destination="stk-0316" id="o-0348"/><outlet property="duplicatesTitleLabel" destination="lbl-0317" id="o-0349"/><outlet property="duplicatesStackView" destination="stk-0318" id="o-0350"/><outlet property="historyLabel" destination="lbl-0319" id="o-0351"/><outlet property="errorLabel" destination="lbl-0320" id="o-0352"/><outlet property="approveButton" destination="btn-0321" id="o-0353"/><outlet property="changesButton" destination="btn-0324" id="o-0354"/><outlet property="rejectButton" destination="btn-0327" id="o-0355"/></connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ads-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="arrow.clockwise" catalog="system" width="32" height="32"/>
+        <image name="binoculars.fill" catalog="system" width="32" height="32"/>
+        <image name="heart" catalog="system" width="32" height="32"/>
+        <image name="heart.fill" catalog="system" width="32" height="32"/>
+        <image name="list.bullet" catalog="system" width="32" height="32"/>
+        <image name="location" catalog="system" width="32" height="32"/>
+        <image name="location.circle" catalog="system" width="32" height="32"/>
+        <image name="location.fill" catalog="system" width="32" height="32"/>
+        <image name="magnifyingglass" catalog="system" width="32" height="32"/>
+        <image name="map" catalog="system" width="32" height="32"/>
+        <image name="person.crop.circle" catalog="system" width="32" height="32"/>
+        <image name="person.crop.circle.fill" catalog="system" width="32" height="32"/>
+        <image name="person.fill" catalog="system" width="32" height="32"/>
+        <image name="slider.horizontal.3" catalog="system" width="32" height="32"/>
+        <image name="sparkles" catalog="system" width="32" height="32"/>
+        <namedColor name="AppBackground">
+            <color red="0.96099999999999997" green="0.96499999999999997" blue="0.95299999999999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="BrandSoft">
+            <color red="0.88600000000000001" green="0.94899999999999995" blue="0.93300000000000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="CardBackground">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

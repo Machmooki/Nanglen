@@ -1,0 +1,623 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		80A0000230A064EC0022E40B /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 80A0000330A064EC0022E40B /* GRDB */; };
+		80B0000230A064EC0022E40B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 80B0000330A064EC0022E40B /* Supabase */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		807095C230A064EC0022E40B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 807095A330A064EB0022E40B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 807095AA30A064EB0022E40B;
+			remoteInfo = Nanglen_App;
+		};
+		807095CC30A064EC0022E40B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 807095A330A064EB0022E40B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 807095AA30A064EB0022E40B;
+			remoteInfo = Nanglen_App;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		807095AB30A064EB0022E40B /* Nanglen_App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nanglen_App.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		807095C130A064EC0022E40B /* Nanglen_AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Nanglen_AppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		807095CB30A064EC0022E40B /* Nanglen_AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Nanglen_AppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		807095D130A064EC0022E40B /* Exceptions for "Nanglen_App" folder in "Nanglen_App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 807095AA30A064EB0022E40B /* Nanglen_App */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		807095AD30A064EB0022E40B /* Nanglen_App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				807095D130A064EC0022E40B /* Exceptions for "Nanglen_App" folder in "Nanglen_App" target */,
+			);
+			path = Nanglen_App;
+			sourceTree = "<group>";
+		};
+		807095C430A064EC0022E40B /* Nanglen_AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Nanglen_AppTests;
+			sourceTree = "<group>";
+		};
+		807095CE30A064EC0022E40B /* Nanglen_AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Nanglen_AppUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		807095A830A064EB0022E40B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				80A0000230A064EC0022E40B /* GRDB in Frameworks */,
+				80B0000230A064EC0022E40B /* Supabase in Frameworks */,
+			);
+		};
+		807095BE30A064EC0022E40B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		807095C830A064EC0022E40B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		807095A230A064EB0022E40B = {
+			isa = PBXGroup;
+			children = (
+				807095AD30A064EB0022E40B /* Nanglen_App */,
+				807095C430A064EC0022E40B /* Nanglen_AppTests */,
+				807095CE30A064EC0022E40B /* Nanglen_AppUITests */,
+				807095AC30A064EB0022E40B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		807095AC30A064EB0022E40B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				807095AB30A064EB0022E40B /* Nanglen_App.app */,
+				807095C130A064EC0022E40B /* Nanglen_AppTests.xctest */,
+				807095CB30A064EC0022E40B /* Nanglen_AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		807095AA30A064EB0022E40B /* Nanglen_App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 807095D230A064EC0022E40B /* Build configuration list for PBXNativeTarget "Nanglen_App" */;
+			buildPhases = (
+				807095A730A064EB0022E40B /* Sources */,
+				807095A830A064EB0022E40B /* Frameworks */,
+				807095A930A064EB0022E40B /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				807095AD30A064EB0022E40B /* Nanglen_App */,
+			);
+			name = Nanglen_App;
+			packageProductDependencies = (
+				80A0000330A064EC0022E40B /* GRDB */,
+				80B0000330A064EC0022E40B /* Supabase */,
+			);
+			productName = Nanglen_App;
+			productReference = 807095AB30A064EB0022E40B /* Nanglen_App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		807095C030A064EC0022E40B /* Nanglen_AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 807095D730A064EC0022E40B /* Build configuration list for PBXNativeTarget "Nanglen_AppTests" */;
+			buildPhases = (
+				807095BD30A064EC0022E40B /* Sources */,
+				807095BE30A064EC0022E40B /* Frameworks */,
+				807095BF30A064EC0022E40B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				807095C330A064EC0022E40B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				807095C430A064EC0022E40B /* Nanglen_AppTests */,
+			);
+			name = Nanglen_AppTests;
+			productName = Nanglen_AppTests;
+			productReference = 807095C130A064EC0022E40B /* Nanglen_AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		807095CA30A064EC0022E40B /* Nanglen_AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 807095DA30A064EC0022E40B /* Build configuration list for PBXNativeTarget "Nanglen_AppUITests" */;
+			buildPhases = (
+				807095C730A064EC0022E40B /* Sources */,
+				807095C830A064EC0022E40B /* Frameworks */,
+				807095C930A064EC0022E40B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				807095CD30A064EC0022E40B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				807095CE30A064EC0022E40B /* Nanglen_AppUITests */,
+			);
+			name = Nanglen_AppUITests;
+			productName = Nanglen_AppUITests;
+			productReference = 807095CB30A064EC0022E40B /* Nanglen_AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		807095A330A064EB0022E40B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2710;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					807095AA30A064EB0022E40B = {
+						CreatedOnToolsVersion = 27.1;
+					};
+					807095C030A064EC0022E40B = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 807095AA30A064EB0022E40B;
+					};
+					807095CA30A064EC0022E40B = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 807095AA30A064EB0022E40B;
+					};
+				};
+			};
+			buildConfigurationList = 807095A630A064EB0022E40B /* Build configuration list for PBXProject "Nanglen_App" */;
+			developmentRegion = th;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				th,
+				en,
+				Base,
+			);
+			mainGroup = 807095A230A064EB0022E40B;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				80A0000130A064EC0022E40B /* XCRemoteSwiftPackageReference "GRDB" */,
+				80B0000130A064EC0022E40B /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 807095AC30A064EB0022E40B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				807095AA30A064EB0022E40B /* Nanglen_App */,
+				807095C030A064EC0022E40B /* Nanglen_AppTests */,
+				807095CA30A064EC0022E40B /* Nanglen_AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		807095A930A064EB0022E40B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		807095BF30A064EC0022E40B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		807095C930A064EC0022E40B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		807095A730A064EB0022E40B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		807095BD30A064EC0022E40B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		807095C730A064EC0022E40B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		807095C330A064EC0022E40B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 807095AA30A064EB0022E40B /* Nanglen_App */;
+			targetProxy = 807095C230A064EC0022E40B /* PBXContainerItemProxy */;
+		};
+		807095CD30A064EC0022E40B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 807095AA30A064EB0022E40B /* Nanglen_App */;
+			targetProxy = 807095CC30A064EC0022E40B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		807095D330A064EC0022E40B /* Debug configuration for PBXNativeTarget "Nanglen_App" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Nanglen_App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Nanglen;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Nanglen ใช้ตำแหน่งของคุณเพื่อค้นหาที่นั่งทำงานหรืออ่านหนังสือใกล้ตัว และยืนยันว่าคุณอยู่ที่สถานที่จริงตอนเช็คอิน";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Mach.Nanglen-App";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		807095D430A064EC0022E40B /* Release configuration for PBXNativeTarget "Nanglen_App" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Nanglen_App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Nanglen;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Nanglen ใช้ตำแหน่งของคุณเพื่อค้นหาที่นั่งทำงานหรืออ่านหนังสือใกล้ตัว และยืนยันว่าคุณอยู่ที่สถานที่จริงตอนเช็คอิน";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Mach.Nanglen-App";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		807095D530A064EC0022E40B /* Debug configuration for PBXProject "Nanglen_App" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		807095D630A064EC0022E40B /* Release configuration for PBXProject "Nanglen_App" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		807095D830A064EC0022E40B /* Debug configuration for PBXNativeTarget "Nanglen_AppTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Mach.Nanglen-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Nanglen_App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nanglen_App";
+			};
+			name = Debug;
+		};
+		807095D930A064EC0022E40B /* Release configuration for PBXNativeTarget "Nanglen_AppTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Mach.Nanglen-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Nanglen_App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nanglen_App";
+			};
+			name = Release;
+		};
+		807095DB30A064EC0022E40B /* Debug configuration for PBXNativeTarget "Nanglen_AppUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Mach.Nanglen-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Nanglen_App;
+			};
+			name = Debug;
+		};
+		807095DC30A064EC0022E40B /* Release configuration for PBXNativeTarget "Nanglen_AppUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4K48W37UB7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Mach.Nanglen-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Nanglen_App;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		807095A630A064EB0022E40B /* Build configuration list for PBXProject "Nanglen_App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				807095D530A064EC0022E40B /* Debug configuration for PBXProject "Nanglen_App" */,
+				807095D630A064EC0022E40B /* Release configuration for PBXProject "Nanglen_App" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		807095D230A064EC0022E40B /* Build configuration list for PBXNativeTarget "Nanglen_App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				807095D330A064EC0022E40B /* Debug configuration for PBXNativeTarget "Nanglen_App" */,
+				807095D430A064EC0022E40B /* Release configuration for PBXNativeTarget "Nanglen_App" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		807095D730A064EC0022E40B /* Build configuration list for PBXNativeTarget "Nanglen_AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				807095D830A064EC0022E40B /* Debug configuration for PBXNativeTarget "Nanglen_AppTests" */,
+				807095D930A064EC0022E40B /* Release configuration for PBXNativeTarget "Nanglen_AppTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		807095DA30A064EC0022E40B /* Build configuration list for PBXNativeTarget "Nanglen_AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				807095DB30A064EC0022E40B /* Debug configuration for PBXNativeTarget "Nanglen_AppUITests" */,
+				807095DC30A064EC0022E40B /* Release configuration for PBXNativeTarget "Nanglen_AppUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		80A0000130A064EC0022E40B /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.9.0;
+			};
+		};
+		80B0000130A064EC0022E40B /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.55.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		80A0000330A064EC0022E40B /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 80A0000130A064EC0022E40B /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+		80B0000330A064EC0022E40B /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 80B0000130A064EC0022E40B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 807095A330A064EB0022E40B /* Project object */;
+	validationLevel = 1;
+}

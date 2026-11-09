@@ -1,0 +1,12 @@
+# Xcode
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+.DS_Store
+
+# Secrets / local configuration
+Nanglen_App/Resources/Supabase.plist
+supabase/.env
+supabase/.temp/
+supabase/.branches/

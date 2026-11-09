@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="PlaceCardCell" rowHeight="172" id="pc-cell" customClass="PlaceCardCell" customModule="Nanglen_App" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="172"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="pc-cell" id="pc-content">
+                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pc-card">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pc-tile">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="cup.and.saucer.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="pc-icon">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                    </imageView>
+                                </subviews>
+                                <color key="backgroundColor" name="BrandSoft"/>
+                                <constraints>
+                                    <constraint firstItem="pc-icon" firstAttribute="centerX" secondItem="pc-tile" secondAttribute="centerX" id="c-001-nl"/>
+                                    <constraint firstItem="pc-icon" firstAttribute="centerY" secondItem="pc-tile" secondAttribute="centerY" id="c-002-nl"/>
+                                    <constraint firstAttribute="width" constant="48" id="c-003-nl"/>
+                                    <constraint firstAttribute="height" constant="48" id="c-004-nl"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ชื่อสถานที่" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pc-name">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="pc-meta-row">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <subviews>
+                                    <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="heart.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="pc-fav">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="คาเฟ่ · 350 ม." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pc-meta">
+                                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pc-score" customClass="RatingBadgeView" customModule="Nanglen_App" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="76" id="c-005-nl"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-006-nl"/>
+                                </constraints>
+                            </view>
+                            <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="pc-pills">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="c-007-nl"/>
+                                </constraints>
+                            </stackView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="ยังไม่มีรีวิว" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pc-footer">
+                                <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" name="CardBackground"/>
+                        <constraints>
+                            <constraint firstItem="pc-tile" firstAttribute="leading" secondItem="pc-card" secondAttribute="leading" constant="16" id="c-008-nl"/>
+                            <constraint firstItem="pc-tile" firstAttribute="top" secondItem="pc-card" secondAttribute="top" constant="16" id="c-009-nl"/>
+                            <constraint firstItem="pc-name" firstAttribute="leading" secondItem="pc-tile" secondAttribute="trailing" constant="12" id="c-010-nl"/>
+                            <constraint firstItem="pc-name" firstAttribute="top" secondItem="pc-card" secondAttribute="top" constant="16" id="c-011-nl"/>
+                            <constraint firstAttribute="trailing" secondItem="pc-score" secondAttribute="trailing" constant="14" id="c-012-nl"/>
+                            <constraint firstItem="pc-score" firstAttribute="top" secondItem="pc-card" secondAttribute="top" constant="14" id="c-013-nl"/>
+                            <constraint firstItem="pc-score" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="pc-name" secondAttribute="trailing" constant="8" id="c-014-nl"/>
+                            <constraint firstItem="pc-meta-row" firstAttribute="leading" secondItem="pc-name" secondAttribute="leading" id="c-015-nl"/>
+                            <constraint firstItem="pc-meta-row" firstAttribute="top" secondItem="pc-name" secondAttribute="bottom" constant="2" id="c-016-nl"/>
+                            <constraint firstItem="pc-score" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="pc-meta-row" secondAttribute="trailing" constant="8" id="c-017-nl"/>
+                            <constraint firstItem="pc-pills" firstAttribute="leading" secondItem="pc-card" secondAttribute="leading" constant="16" id="c-018-nl"/>
+                            <constraint firstItem="pc-pills" firstAttribute="top" relation="greaterThanOrEqual" secondItem="pc-tile" secondAttribute="bottom" constant="12" id="c-019-nl"/>
+                            <constraint firstItem="pc-pills" firstAttribute="top" relation="greaterThanOrEqual" secondItem="pc-meta-row" secondAttribute="bottom" constant="12" id="c-020-nl"/>
+                            <constraint firstItem="pc-pills" firstAttribute="top" relation="greaterThanOrEqual" secondItem="pc-score" secondAttribute="bottom" constant="12" id="c-021-nl"/>
+                            <constraint firstItem="pc-pills" firstAttribute="top" secondItem="pc-tile" secondAttribute="bottom" priority="250" constant="12" id="c-022-nl"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="pc-pills" secondAttribute="trailing" constant="16" id="c-023-nl"/>
+                            <constraint firstItem="pc-footer" firstAttribute="leading" secondItem="pc-card" secondAttribute="leading" constant="16" id="c-024-nl"/>
+                            <constraint firstAttribute="trailing" secondItem="pc-footer" secondAttribute="trailing" constant="16" id="c-025-nl"/>
+                            <constraint firstItem="pc-footer" firstAttribute="top" secondItem="pc-pills" secondAttribute="bottom" constant="10" id="c-026-nl"/>
+                            <constraint firstAttribute="bottom" secondItem="pc-footer" secondAttribute="bottom" constant="14" id="c-027-nl"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="pc-card" firstAttribute="top" secondItem="pc-content" secondAttribute="top" constant="6" id="c-028-nl"/>
+                    <constraint firstItem="pc-card" firstAttribute="leading" secondItem="pc-content" secondAttribute="leading" constant="20" id="c-029-nl"/>
+                    <constraint firstAttribute="trailing" secondItem="pc-card" secondAttribute="trailing" constant="20" id="c-030-nl"/>
+                    <constraint firstAttribute="bottom" secondItem="pc-card" secondAttribute="bottom" priority="999" constant="6" id="c-031-nl"/>
+                </constraints>
+            </tableViewCellContentView>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="cardView" destination="pc-card" id="o-032-nl"/>
+                <outlet property="favoriteImageView" destination="pc-fav" id="o-037-nl"/>
+                <outlet property="footerLabel" destination="pc-footer" id="o-040-nl"/>
+                <outlet property="iconImageView" destination="pc-icon" id="o-034-nl"/>
+                <outlet property="iconTileView" destination="pc-tile" id="o-033-nl"/>
+                <outlet property="metaLabel" destination="pc-meta" id="o-036-nl"/>
+                <outlet property="nameLabel" destination="pc-name" id="o-035-nl"/>
+                <outlet property="pillsStackView" destination="pc-pills" id="o-039-nl"/>
+                <outlet property="ratingBadgeView" destination="pc-score" id="o-038-nl"/>
+            </connections>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="cup.and.saucer.fill" catalog="system" width="32" height="32"/>
+        <image name="heart.fill" catalog="system" width="32" height="32"/>
+        <namedColor name="BrandSoft">
+            <color red="0.88600000000000001" green="0.94899999999999995" blue="0.93300000000000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="CardBackground">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>
