@@ -20,6 +20,14 @@ enum AppStyles {
         view.layer.shadowOffset = CGSize(width: 0, height: 4)
     }
 
+    /// Call from `layoutSubviews` of a view styled with `card(_:)`. An explicit shadow path stops
+    /// Core Animation from rendering the shadow off-screen on every frame, which keeps scrolling smooth.
+    static func updateShadowPath(_ view: UIView) {
+        let bounds = view.bounds
+        guard view.layer.shadowOpacity > 0, view.layer.shadowPath?.boundingBox != bounds else { return }
+        view.layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: view.layer.cornerRadius).cgPath
+    }
+
     static func iconTile(_ view: UIView, tone: StatusTone = .brand) {
         view.backgroundColor = tone.background
         view.layer.cornerRadius = AppRadius.icon

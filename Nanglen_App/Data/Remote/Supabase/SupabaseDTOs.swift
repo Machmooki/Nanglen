@@ -15,6 +15,8 @@ nonisolated struct SearchParams: Encodable, Sendable {
     var p_sort: String
     var p_limit: Int
     var p_offset: Int
+    var p_tags: [String]?
+    var p_reviewed_only: Bool
 }
 
 nonisolated struct CardsParams: Encodable, Sendable {
@@ -204,6 +206,8 @@ nonisolated struct VenueDetailDTO: Decodable, Sendable {
     var is_favorite: Bool
     var is_managed_by_me: Bool
     var my_review: MyReviewDTO?
+    /// Added by migration 20261116000100; older servers omit it.
+    var panorama_path: String?
 
     var model: VenueDetail {
         let rating = RatingSummary(reviewCount: review_count, average: review_count > 0 ? average_rating : nil)
@@ -221,7 +225,8 @@ nonisolated struct VenueDetailDTO: Decodable, Sendable {
             summary: summary, description: description, websiteURL: website_url.flatMap(URL.init(string:)),
             phoneNumber: phone_number, detailsSource: details_source, appleMapsID: apple_maps_id,
             ratingDistribution: rating_distribution, lastReviewAt: SupabaseBackend.date(last_review_at),
-            tagCounts: tags, photoPaths: photo_paths, isFavorite: is_favorite, isManagedByMe: is_managed_by_me, myReview: mine)
+            tagCounts: tags, photoPaths: photo_paths, isFavorite: is_favorite, isManagedByMe: is_managed_by_me, myReview: mine,
+            panoramaPath: panorama_path)
     }
 }
 
@@ -368,13 +373,16 @@ nonisolated struct CapabilitiesDTO: Decodable, Sendable {
     var reviews_count: Int
     var open_submissions_count: Int
     var memberships: [MembershipDTO]
+    var contact_hint: String?
+    var avatar_path: String?
 
     var model: UserCapabilities {
         UserCapabilities(
             userID: user_id, isAnonymous: is_anonymous, isRegistered: is_registered, isAdmin: is_admin,
-            displayName: display_name ?? "ผู้ใช้ Nanglen", favoritesCount: favorites_count, reviewsCount: reviews_count,
+            displayName: display_name ?? "Nanglen user", favoritesCount: favorites_count, reviewsCount: reviews_count,
             openSubmissionsCount: open_submissions_count,
-            memberships: memberships.map { BusinessMembership(businessID: $0.business_id, businessName: $0.business_name, role: $0.role, venueIDs: $0.venue_ids) })
+            memberships: memberships.map { BusinessMembership(businessID: $0.business_id, businessName: $0.business_name, role: $0.role, venueIDs: $0.venue_ids) },
+            contactHint: contact_hint, avatarPath: avatar_path)
     }
 }
 

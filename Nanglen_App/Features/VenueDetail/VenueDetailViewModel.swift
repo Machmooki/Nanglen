@@ -15,6 +15,8 @@ final class VenueDetailViewModel {
         var isRegistered = false
 
         var myReview: MyReview? { detail?.myReview }
+        /// Signed URL of the place's own 360° photo, once resolved.
+        var panoramaURL: URL? { detail?.panoramaPath.flatMap { mediaURLs[$0] } }
         var acceptsReviews: Bool { venue.status.acceptsReviews }
     }
 
@@ -71,7 +73,7 @@ final class VenueDetailViewModel {
             state.isFavorite = detail.isFavorite
             venues.log("venue_detail_view", venueID: venue.id)
             await loadReviews(reset: true)
-            await loadMedia(venuePhotos: detail.photoPaths)
+            await loadMedia(venuePhotos: detail.photoPaths, panorama: detail.panoramaPath)
         } catch {
             state.errorMessage = L10n.Errors.message(for: error)
         }
@@ -103,9 +105,10 @@ final class VenueDetailViewModel {
         }
     }
 
-    private func loadMedia(venuePhotos: [String]) async {
-        guard !venuePhotos.isEmpty else { return }
-        let urls = await venues.signedURLs(paths: Array(venuePhotos.prefix(6)), bucket: .venue)
+    private func loadMedia(venuePhotos: [String], panorama: String?) async {
+        let paths = Array(venuePhotos.prefix(10)) + [panorama].compactMap { $0 }
+        guard !paths.isEmpty else { return }
+        let urls = await venues.signedURLs(paths: paths, bucket: .venue)
         state.mediaURLs.merge(urls) { _, new in new }
     }
 

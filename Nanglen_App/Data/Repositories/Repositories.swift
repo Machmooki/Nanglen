@@ -52,9 +52,8 @@ final class VenueRepository {
             text: query.trimmedText, notOlderThan: clock().addingTimeInterval(-configuration.venueCacheMaxAge))
         guard !cached.isEmpty else { throw BackendError.network }
         let ranker = configuration.ranker
-        var venues = cached.map(\.venue).filter { venue in
-            query.filter.minimumRating.value.map { (venue.rating.average ?? 0) >= $0 } ?? true
-        }
+        // Offline approximation: tag filters use the cached top tags. Results are labelled stale.
+        var venues = cached.map(\.venue).filter(query.filter.matches)
         venues = venues.map { venue in
             var scored = venue
             let relevance = query.trimmedText.isEmpty ? nil : ranker.relevance(name: venue.name, query: query.trimmedText)

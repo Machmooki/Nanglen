@@ -34,6 +34,11 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
     private let categories: [VenueCategory?] = [nil, .cafe, .library, .coworking, .studySpace, .other]
     private var pendingDetail: VenueSummary?
     private let footerView = ExploreFooterView()
+    private let activeFiltersView = ActiveFiltersView()
+    private var renderedFilter: VenueFilter?
+    private let eyebrowLabel = UILabel()
+    private let addPlaceButton = UIButton(type: .system)
+    private var addPlaceBottom: NSLayoutConstraint?
 
     func configure(with container: AppContainer) {
         self.container = container
@@ -78,6 +83,7 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
         titleLabel.text = L10n.Explore.title
         titleLabel.accessibilityTraits = .header
         loadingIndicator.color = AppColors.primary
+        setUpEyebrow()
 
         viewModeControl.setImage(UIImage(systemName: "list.bullet"), forSegmentAt: 0)
         viewModeControl.setImage(UIImage(systemName: "map"), forSegmentAt: 1)
@@ -114,15 +120,45 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
         AppStyles.overlayButton(locateButton, title: nil, systemImage: "location.fill")
         locateButton.accessibilityLabel = L10n.Explore.locateMe
         searchAreaButton.isHidden = true
+        setUpAddPlaceButton()
+    }
+
+    /// Round glass "+" floating above the list (and above the locate button in map mode).
+    private func setUpAddPlaceButton() {
+        var config = UIButton.Configuration.prominentGlass()
+        config.image = UIImage(systemName: "plus")
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
+        config.baseBackgroundColor = AppColors.primary
+        config.baseForegroundColor = .white
+        config.cornerStyle = .capsule
+        addPlaceButton.configuration = config
+        addPlaceButton.accessibilityLabel = L10n.Explore.addPlace
+        addPlaceButton.accessibilityIdentifier = "explore.addPlace"
+        addPlaceButton.addAction(UIAction { [weak self] _ in
+            AppComponents.selectionHaptic()
+            self?.showAddPlace()
+        }, for: .primaryActionTriggered)
+        addPlaceButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(addPlaceButton)
+        let bottom = addPlaceButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -AppSpacing.l)
+        addPlaceBottom = bottom
+        NSLayoutConstraint.activate([
+            addPlaceButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -AppSpacing.l),
+            addPlaceButton.widthAnchor.constraint(equalToConstant: 60),
+            addPlaceButton.heightAnchor.constraint(equalToConstant: 60),
+            bottom,
+        ])
     }
 
     private func setUpList() {
-        tableView.register(PlaceCardCell.nib, forCellReuseIdentifier: PlaceCardCell.reuseIdentifier)
+        tableView.register(ExplorePlaceCardCell.self, forCellReuseIdentifier: ExplorePlaceCardCell.reuseIdentifier)
+        tableView.estimatedRowHeight = 320
         tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: SectionHeaderView.reuseIdentifier)
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         tableView.sectionHeaderTopPadding = 0
-        tableView.contentInset.bottom = AppSpacing.l
+        // Room for the floating Add Place button so it never covers the last card.
+        tableView.contentInset.bottom = AppSpacing.l + 72
         tableView.keyboardDismissMode = .onDrag
         tableView.delegate = self
         dataSource = ExploreDataSource(tableView: tableView)
@@ -135,6 +171,24 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
         tableView.refreshControl = refresh
         footerView.onAddPlace = { [weak self] in self?.showAddPlace() }
         footerView.onLoadMore = { [weak self] in self?.viewModel?.loadMore() }
+    }
+
+    /// Small friendly line above the big title ("Find your chill spot ✨").
+    private func setUpEyebrow() {
+        guard let header = categoryCollectionView.superview as? UIStackView else { return }
+        eyebrowLabel.apply(AppTypography.captionBold, color: AppColors.primary)
+        eyebrowLabel.text = L10n.Explore.eyebrow
+        eyebrowLabel.translatesAutoresizingMaskIntoConstraints = false
+        let wrapper = UIView()
+        wrapper.addSubview(eyebrowLabel)
+        NSLayoutConstraint.activate([
+            eyebrowLabel.topAnchor.constraint(equalTo: wrapper.topAnchor, constant: AppSpacing.xs),
+            eyebrowLabel.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor),
+            eyebrowLabel.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor, constant: AppSpacing.screenMargin),
+            eyebrowLabel.trailingAnchor.constraint(lessThanOrEqualTo: wrapper.trailingAnchor, constant: -AppSpacing.screenMargin),
+        ])
+        header.insertArrangedSubview(wrapper, at: 0)
+        header.setCustomSpacing(0, after: wrapper)
     }
 
     private func setUpMap() {
@@ -162,6 +216,13 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
         }
         categoryCollectionView.reloadData()
         categoryCollectionView.selectItem(at: IndexPath(item: 0, section: 0), animated: false, scrollPosition: [])
+        if let header = categoryCollectionView.superview as? UIStackView,
+           let index = header.arrangedSubviews.firstIndex(of: categoryCollectionView) {
+            header.insertArrangedSubview(activeFiltersView, at: index + 1)
+        }
+        activeFiltersView.isHidden = true
+        activeFiltersView.onRemove = { [weak self] item in self?.viewModel?.removeFilter(item) }
+        activeFiltersView.onClearAll = { [weak self] in self?.viewModel?.apply(.default) }
     }
 
     private func bind(_ viewModel: ExploreViewModel) {
@@ -175,11 +236,14 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
     private func render(_ state: ExploreViewModel.State) {
         if state.isLoading { loadingIndicator.startAnimating() } else { loadingIndicator.stopAnimating() }
 
-        var locationConfig = UIButton.Configuration.plain()
+        // Location as a soft capsule "pill" — reads as tappable without shouting.
+        var locationConfig = UIButton.Configuration.filled()
         locationConfig.title = state.locationState.text
         locationConfig.image = UIImage(systemName: state.locationState.symbol)
-        locationConfig.imagePadding = AppSpacing.xs
-        locationConfig.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0)
+        locationConfig.imagePadding = AppSpacing.xs + 2
+        locationConfig.cornerStyle = .capsule
+        locationConfig.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 12, bottom: 7, trailing: 14)
+        locationConfig.baseBackgroundColor = state.locationState == .denied ? AppColors.fill : AppColors.primarySoft
         locationConfig.baseForegroundColor = state.locationState == .denied ? AppColors.textSecondary : AppColors.primary
         locationConfig.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(textStyle: .footnote)
         locationConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
@@ -193,6 +257,10 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
         filterBadgeLabel.text = "\(count)"
         filterBadgeLabel.isHidden = count == 0
         filterButton.accessibilityValue = count == 0 ? nil : "\(count)"
+        if renderedFilter != state.filter {
+            renderedFilter = state.filter
+            activeFiltersView.configure(filter: state.filter)
+        }
 
         bannerLabel.text = state.bannerText
         if bannerView.isHidden != (state.bannerText == nil) {
@@ -277,6 +345,9 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
             self.tableView.isHidden = showMap
             self.mapView.isHidden = !showMap
             self.locateButton.isHidden = !showMap
+            // In map mode the locate button sits bottom-right, so lift Add Place above it.
+            self.addPlaceBottom?.constant = showMap ? -(AppSpacing.l + 50 + AppSpacing.m) : -AppSpacing.l
+            self.view.layoutIfNeeded()
             if !showMap { self.searchAreaButton.isHidden = true }
         }
     }

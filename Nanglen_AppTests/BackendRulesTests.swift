@@ -25,31 +25,96 @@ struct BackendRulesTests {
         await #expect(throws: BackendError.registrationRequired) { try await backend.createSubmission(draft) }
     }
 
-    @Test func linkingPhoneKeepsUserIDAndFavorites() async throws {
+    @Test func linkingEmailKeepsUserIDAndFavorites() async throws {
         let backend = makeBackend()
         try await backend.ensureSession()
         let guestID = try await backend.capabilities().userID
         try await backend.setFavorite(venueID: Fixtures.cafeID, isFavorite: true)
-        try await backend.requestPhoneLink(phoneE164: "+66812345678")
-        try await backend.confirmPhoneLink(phoneE164: "+66812345678", code: DemoSeed.demoOTP)
+        try await backend.requestEmailLink(email: "Mint@Example.test ")
+        try await backend.confirmEmailLink(email: "mint@example.test", code: DemoSeed.demoOTP)
         let caps = try await backend.capabilities()
         #expect(caps.userID == guestID)
         #expect(caps.isRegistered)
+        #expect(caps.contactHint == "m•••@example.test")
         #expect(try await backend.favoriteVenueIDs() == [Fixtures.cafeID])
     }
 
-    @Test func phoneAlreadyLinkedElsewhereIsRejectedNotMerged() async throws {
+    @Test func existingEmailIsNotMergedButCanSignInExplicitly() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66812345678")
+        try await registerUser(backend, email: "mint@example.test")
+        let accountID = try await backend.capabilities().userID
         try await backend.signOut()
-        await #expect(throws: BackendError.phoneAlreadyInUse) { try await backend.requestPhoneLink(phoneE164: "+66812345678") }
+        let guestID = try await backend.capabilities().userID
+        await #expect(throws: BackendError.accountExists) { try await backend.requestEmailLink(email: "mint@example.test") }
+        #expect(try await backend.capabilities().userID == guestID, "nothing was switched or merged")
+
+        try await backend.requestEmailSignIn(email: "mint@example.test")
+        await #expect(throws: BackendError.invalidOTP) { try await backend.confirmEmailSignIn(email: "mint@example.test", code: "000000") }
+        try await backend.confirmEmailSignIn(email: "mint@example.test", code: DemoSeed.demoOTP)
+        #expect(try await backend.capabilities().userID == accountID)
+    }
+
+    @Test func signInToUnknownEmailIsRejected() async throws {
+        let backend = makeBackend()
+        try await backend.ensureSession()
+        await #expect(throws: BackendError.notFound) { try await backend.requestEmailSignIn(email: "nobody@example.test") }
+    }
+
+    @Test func deleteAccountRemovesPersonalDataAndStartsFreshGuest() async throws {
+        let backend = makeBackend()
+        try await registerUser(backend, email: "bye@example.test")
+        let oldID = try await backend.capabilities().userID
+        try await backend.setFavorite(venueID: Fixtures.cafeID, isFavorite: true)
+        let challenge = try await backend.issueVisitChallenge(venueID: Fixtures.cafeID)
+        let verification = try #require(try await backend.verifyVisit(challengeID: challenge.id, reading: Fixtures.reading()).verificationID)
+        _ = try await backend.submitReview(ReviewSubmission(venueID: Fixtures.cafeID, verificationID: verification, rating: 5, purpose: nil,
+                                                            tags: [], body: nil, idempotencyKey: UUID()))
+        try await backend.deleteAccount()
+        let caps = try await backend.capabilities()
+        #expect(caps.userID != oldID)
+        #expect(caps.isAnonymous)
+        #expect(try await backend.favoriteVenueIDs().isEmpty)
+        #expect(!(try await backend.reviews(venueID: Fixtures.cafeID, sort: .recent, limit: 50, offset: 0).reviews.contains { $0.isMine }))
+        #expect(backend.resumeSessionForTesting(email: "bye@example.test") == false, "the email is free again")
+    }
+
+    @Test func adminCannotSelfDelete() async throws {
+        let backend = makeBackend()
+        try await registerUser(backend, email: DemoSeed.adminEmail)
+        await #expect(throws: BackendError.deletionBlocked) { try await backend.deleteAccount() }
+    }
+
+    @Test func reservedDisplayNamesAreRejected() async throws {
+        let backend = makeBackend()
+        try await registerUser(backend)
+        await #expect(throws: BackendError.invalidInput("reserved_display_name")) { try await backend.updateDisplayName("Nanglen Admin") }
+        try await backend.updateDisplayName("  Mint\u{200B}   Reader ")
+        #expect(try await backend.capabilities().displayName == "Mint Reader")
+    }
+
+    @Test func tagAndReviewedOnlyFilters() async throws {
+        let backend = makeBackend()
+        try await backend.ensureSession()
+        var query = VenueSearchQuery(origin: Fixtures.cafe, radiusMeters: 10_000)
+        let all = try await backend.searchVenues(query).venues
+        query.filter.reviewedOnly = true
+        let reviewed = try await backend.searchVenues(query).venues
+        #expect(reviewed.allSatisfy { $0.rating.hasReviews })
+        #expect(reviewed.count < all.count)
+        query.filter.tags = ["quiet"]
+        let quiet = try await backend.searchVenues(query).venues
+        #expect(Set(quiet.map(\.id)) == [Fixtures.cafeID, Fixtures.libraryID], "only venues where visitors chose Quiet")
+        query.filter.tags = ["quiet", "lively"]
+        #expect(try await backend.searchVenues(query).venues.isEmpty, "all chosen tags must match")
+        query.filter.tags = ["not_a_tag"]
+        await #expect(throws: BackendError.invalidInput("unknown_tag")) { try await backend.searchVenues(query) }
     }
 
     @Test func wrongOTPIsRejected() async throws {
         let backend = makeBackend()
         try await backend.ensureSession()
-        try await backend.requestPhoneLink(phoneE164: "+66812345678")
-        await #expect(throws: BackendError.invalidOTP) { try await backend.confirmPhoneLink(phoneE164: "+66812345678", code: "000000") }
+        try await backend.requestEmailLink(email: "mint@example.test")
+        await #expect(throws: BackendError.invalidOTP) { try await backend.confirmEmailLink(email: "mint@example.test", code: "000000") }
         #expect(try await backend.capabilities().isRegistered == false)
     }
 
@@ -130,9 +195,9 @@ struct BackendRulesTests {
 
     @Test func anotherUserCannotUseMyVerification() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         let verification = try await verified(backend)
-        try await registerUser(backend, phone: "+66822222222")
+        try await registerUser(backend, email: "two@example.test")
         await #expect(throws: BackendError.verificationInvalid) { try await backend.submitReview(submission(verification)) }
     }
 
@@ -192,7 +257,7 @@ struct BackendRulesTests {
 
     @Test func pendingSubmissionIsNotPublicUntilAdminApproves() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         guard case .submitted(let id, let status, _) = try await backend.createSubmission(draft()) else {
             Issue.record("expected submitted")
             return
@@ -201,7 +266,7 @@ struct BackendRulesTests {
         #expect(try await backend.searchVenues(VenueSearchQuery(text: "Brand New Loft")).venues.isEmpty)
         await #expect(throws: BackendError.adminRequired) { try await backend.adminDecide(submissionID: id, decision: .approve(note: nil, force: false)) }
 
-        try await registerUser(backend, phone: DemoSeed.adminPhone)
+        try await registerUser(backend, email: DemoSeed.adminEmail)
         #expect(try await backend.capabilities().isAdmin)
         try await backend.adminDecide(submissionID: id, decision: .approve(note: "ok", force: false))
         #expect(try await backend.searchVenues(VenueSearchQuery(text: "Brand New Loft")).venues.count == 1)
@@ -224,12 +289,12 @@ struct BackendRulesTests {
 
     @Test func rejectAndNeedsChangesRequireReasonAndResubmit() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         guard case .submitted(let id, _, _) = try await backend.createSubmission(draft()) else { return }
-        try await registerUser(backend, phone: DemoSeed.adminPhone)
+        try await registerUser(backend, email: DemoSeed.adminEmail)
         await #expect(throws: BackendError.invalidInput("reason_required")) { try await backend.adminDecide(submissionID: id, decision: .reject(reason: " ")) }
         try await backend.adminDecide(submissionID: id, decision: .requestChanges(reason: "Move the pin"))
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         let mine = try #require(try await backend.mySubmissions().first)
         #expect(mine.status == .needsChanges)
         #expect(mine.decisionReason == "Move the pin")
@@ -248,12 +313,12 @@ struct BackendRulesTests {
 
     @Test func likelyDuplicateNeedsForceAndDuplicateLinksVenue() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66811111111")
-        var copy = draft("ใบชา คาเฟ่ (ตัวอย่าง)")
+        try await registerUser(backend, email: "one@example.test")
+        var copy = draft("Baicha Café (Demo)")
         copy.coordinate = Fixtures.north(of: Fixtures.cafe, meters: 10)
         guard case .submitted(let id, _, let duplicates) = try await backend.createSubmission(copy) else { return }
         #expect(duplicates.contains { $0.venueID == Fixtures.cafeID })
-        try await registerUser(backend, phone: DemoSeed.adminPhone)
+        try await registerUser(backend, email: DemoSeed.adminEmail)
         await #expect(throws: BackendError.likelyDuplicate) { try await backend.adminDecide(submissionID: id, decision: .approve(note: nil, force: false)) }
         try await backend.adminDecide(submissionID: id, decision: .markDuplicate(venueID: Fixtures.cafeID, reason: "Same place"))
         #expect(try await backend.adminSubmissions(status: .duplicate).count == 1)
@@ -263,17 +328,17 @@ struct BackendRulesTests {
 
     @Test func claimGrantsScopedAccessOnlyAfterApproval() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         #expect(try await backend.requestClaim(VenueClaimDraft(venueID: Fixtures.cafeID, businessName: "Baicha Co.")) == .pendingReview)
         #expect(try await backend.venueDetail(id: Fixtures.cafeID).isManagedByMe == false)
         #expect(try await backend.capabilities().memberships.isEmpty)
 
-        try await registerUser(backend, phone: DemoSeed.adminPhone)
+        try await registerUser(backend, email: DemoSeed.adminEmail)
         let claim = try #require(try await backend.adminPendingClaims().first)
         try await backend.adminDecideClaim(id: claim.id, approve: true, reason: nil)
         #expect(try await backend.venueDetail(id: Fixtures.cafeID).isManagedByMe == false, "the Admin is not a member")
 
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         #expect(try await backend.venueDetail(id: Fixtures.cafeID).isManagedByMe)
         #expect(try await backend.venueDetail(id: Fixtures.libraryID).isManagedByMe == false, "scoped to the claimed venue")
         #expect(try await backend.capabilities().memberships.first?.venueIDs == [Fixtures.cafeID])
@@ -281,11 +346,11 @@ struct BackendRulesTests {
 
     @Test func flaggedReviewCanBeHiddenOnlyByAdmin() async throws {
         let backend = makeBackend()
-        try await registerUser(backend, phone: "+66811111111")
+        try await registerUser(backend, email: "one@example.test")
         let reviewID = try #require(try await backend.reviews(venueID: Fixtures.cafeID, sort: .recent, limit: 10, offset: 0).reviews.first?.id)
         try await backend.flagReview(id: reviewID, reason: .spam, note: nil)
         await #expect(throws: BackendError.adminRequired) { try await backend.adminModerateReview(id: reviewID, status: .hidden, reason: "x") }
-        try await registerUser(backend, phone: DemoSeed.adminPhone)
+        try await registerUser(backend, email: DemoSeed.adminEmail)
         #expect(try await backend.adminFlaggedReviews().map(\.id) == [reviewID])
         try await backend.adminModerateReview(id: reviewID, status: .hidden, reason: "Spam")
         let visible = try await backend.reviews(venueID: Fixtures.cafeID, sort: .recent, limit: 50, offset: 0).reviews

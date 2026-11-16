@@ -32,7 +32,7 @@ Providers: LocationManager (CoreLocation one-shot), MapKitPlaceSearchProvider (c
 | `VenueDetailViewController` | segue `showVenueDetail` from Explore / Saved; instantiated from Add Place / My Submissions |
 | `FilterNavigationController` | `presentFilter` |
 | `ReviewComposerNavigationController` | `presentReviewComposer` |
-| `PhoneLinkNavigationController` | `presentPhoneLink` (Detail, Profile); instantiated from the composer and Add Place |
+| `SignInNavigationController` | `presentSignIn` (Detail, Profile); instantiated from the composer and Add Place (email code: link, or sign in to an existing account) |
 | `AddPlaceNavigationController` | `presentAddPlace` (Explore, Profile); instantiated from My Submissions |
 | `ClaimNavigationController` | `presentClaim` |
 | `MySubmissionsViewController` | `showMySubmissions` |

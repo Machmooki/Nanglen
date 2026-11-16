@@ -8,8 +8,8 @@
 <plist version="1.0">
 <dict>
     <key>SUPABASE_URL</key>
-    <string>https://YOUR-PROJECT-REF.supabase.co</string>
+    <string>https://tuufgzbgldtkwaqqxyur.supabase.co/rest/v1/</string>
     <key>SUPABASE_ANON_KEY</key>
-    <string>YOUR_ANON_OR_PUBLISHABLE_KEY</string>
+    <string>sb_publishable_7a6oNqs0Mtzgfm0KxWZhZw_qkM1BYpF</string>
 </dict>
 </plist>

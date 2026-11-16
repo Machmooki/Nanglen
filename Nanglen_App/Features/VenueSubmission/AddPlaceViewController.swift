@@ -196,7 +196,7 @@ final class AddPlaceViewController: UIViewController {
         case .needsRegistration:
             let alert = UIAlertController(title: L10n.Account.registeredRequiredTitle, message: L10n.Account.registeredRequiredSubmit, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
-            alert.addAction(UIAlertAction(title: L10n.Account.linkPhone, style: .default) { [weak self] _ in self?.presentPhoneLink() })
+            alert.addAction(UIAlertAction(title: L10n.Account.verifyEmail, style: .default) { [weak self] _ in self?.presentSignIn() })
             present(alert, animated: true)
         }
     }
@@ -219,11 +219,11 @@ final class AddPlaceViewController: UIViewController {
         }
     }
 
-    private func presentPhoneLink() {
+    private func presentSignIn() {
         guard let container,
-              let navigation = storyboard?.instantiateViewController(withIdentifier: "PhoneLinkNavigationController") as? UINavigationController,
-              let phone = navigation.topViewController as? PhoneLinkViewController else { return }
-        phone.configure(viewModel: container.makePhoneLinkViewModel(), isDemo: container.isDemo)
+              let navigation = storyboard?.instantiateViewController(withIdentifier: "SignInNavigationController") as? UINavigationController,
+              let phone = navigation.topViewController as? SignInViewController else { return }
+        phone.configure(viewModel: container.makeSignInViewModel(), isDemo: container.isDemo)
         present(navigation, animated: true)
     }
 

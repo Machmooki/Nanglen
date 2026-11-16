@@ -3,7 +3,7 @@
 **Discover places worth staying.**
 
 A community-powered place discovery app for students, freelancers and remote workers. Guests browse
-**Admin-approved** places right away. Registered users (verified phone) write reviews **after a
+**Admin-approved** places right away. Registered users (free verified email) write reviews **after a
 location-verified visit** and suggest new places, which go public **only after an Admin approves them**.
 
 - iOS: UIKit + Storyboard, Swift 6, MVVM + Repository + Service
@@ -17,8 +17,8 @@ location-verified visit** and suggest new places, which go public **only after a
 |---|---|
 | Supabase schema, RLS, grants, RPCs, Storage policies (`supabase/migrations`) | **Implemented**; pgTAP suite written; **not executed** (no Docker/Postgres in this environment) |
 | iOS app on the Supabase backend (`SupabaseBackend`) | **Implemented and compiles**; **not run against a live project** (no credentials) |
-| iOS app on the Demo backend (same rules, in-process) | **Implemented, tested** (46 unit tests + 2 UI tests pass); main flows checked by hand on the iPhone 17 simulator |
-| Phone OTP via a real SMS provider, CAPTCHA, buckets, first Admin | **Requires external configuration** (see `docs/PRODUCTION_DEPLOYMENT.md`) |
+| iOS app on the Demo backend (same rules, in-process) | **Implemented, tested** (55 unit tests + 2 UI tests pass); main flows checked by hand on the iPhone 17 simulator |
+| Email OTP (free SMTP), CAPTCHA, buckets, `delete-account` function deploy, first Admin | **Requires external configuration** (see `docs/PRODUCTION_DEPLOYMENT.md`) |
 | App Attest, Admin photo approval UI, business tools beyond claims, English localisation | **Planned** |
 
 ## Running
@@ -26,12 +26,12 @@ location-verified visit** and suggest new places, which go public **only after a
 Requirements: Xcode 27.1+, iOS 26+ (tests 27), Swift packages GRDB 7.x and supabase-swift 2.55.x (resolved automatically).
 
 ```bash
-xcodebuild build -project Nanglen_App.xcodeproj -scheme Nanglen_App -destination 'platform=iOS Simulator,name=iPhone 17'
+xcodebuild build -project Nanglen_App.xcodeproj -scheme Nanglen_App -destination 'platform=iOS Simulator,name=iPhone Air,OS=27.0'
 ```
 
 **Demo mode (default, no credentials).** Data stays on the device and the UI shows "โหมดสาธิต":
-- The OTP is always `123456`. No SMS is sent.
-- Linking `+66800000000` (type `0800000000`) grants Demo Admin.
+- The email code is always `123456`. No email is sent.
+- In debug builds, verifying `admin@demo.nanglen.app` grants Demo Admin.
 - Fictional seed venues sit around Siam, Bangkok. To test a verified review, set the simulator location near one, e.g.:
 
 ```bash
@@ -43,7 +43,7 @@ xcrun simctl location booted set 13.7462,100.5326
 ## Tests
 
 ```bash
-xcodebuild test -project Nanglen_App.xcodeproj -scheme Nanglen_App -destination 'platform=iOS Simulator,name=iPhone 17'
+xcodebuild test -project Nanglen_App.xcodeproj -scheme Nanglen_App -destination 'platform=iOS Simulator,name=iPhone Air,OS=27.0'
 ```
 
 ```bash
@@ -60,9 +60,9 @@ Nanglen_App/
 ├── Domain/           Models (Venue, Review, VisitVerification, Account) · Services (Session, VisitVerification,
 │                     Review/Submission, VenueRanker, Validators, CategoryClassifier)
 ├── Data/             Remote (NanglenBackend protocols, Supabase/, Demo/) · Local (LocalCache) · Repositories · Providers (MapKit)
-└── Features/         Explore, Filter, VenueDetail, ReviewComposer, Account (phone link), VenueSubmission (Add Place),
+└── Features/         Explore, Filter, VenueDetail, ReviewComposer, Account (email sign-in), VenueSubmission (Add Place),
                       MySubmissions, Saved, Profile, Business (claim), AdminModeration, Shared
-supabase/             config.toml, migrations/ (7 ordered files), seed.sql (dev only), tests/database/
+supabase/             config.toml, migrations/ (8 ordered files), functions/delete-account, templates/email_otp.html, seed.sql (dev only), tests/database/
 Config/               Supabase.example.plist
 docs/                 audits, ADR, design, security, verification, workflows, performance, cost, cache, deployment
 ```
@@ -88,6 +88,6 @@ docs/                 audits, ADR, design, security, verification, workflows, pe
 ## Known limitations
 
 - GPS verification checks the coordinates the device submits. It is not proof of physical presence (see the location verification doc).
-- Guest data can be lost if the app is deleted before the user links a phone.
+- Guest data can be lost if the app is deleted before the user verifies an email.
 - Venue cover photos aren't shown on list cards yet; they appear on Venue Detail.
 - The local cache keeps the v1 tables (check-ins etc.) untouched and unused.

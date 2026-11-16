@@ -44,21 +44,50 @@ final class SessionService {
         return capabilities
     }
 
-    func requestPhoneLink(rawPhone: String) async throws -> String {
-        guard let e164 = PhoneNumberFormatter.e164(from: rawPhone) else { throw BackendError.invalidInput("invalid_phone") }
-        try await auth.requestPhoneLink(phoneE164: e164)
-        return e164
+    /// Guest → Registered on this device. Returns the normalised email the code was sent to.
+    func requestEmailLink(rawEmail: String) async throws -> String {
+        guard let email = EmailAddress.normalized(rawEmail) else { throw BackendError.invalidInput("invalid_email") }
+        try await auth.requestEmailLink(email: email)
+        return email
     }
 
-    func confirmPhoneLink(phoneE164: String, code: String) async throws {
-        let trimmed = code.filter(\.isNumber)
-        guard (4...10).contains(trimmed.count) else { throw BackendError.invalidOTP }
-        try await auth.confirmPhoneLink(phoneE164: phoneE164, code: trimmed)
+    func confirmEmailLink(email: String, code: String) async throws {
+        try await auth.confirmEmailLink(email: email, code: try Self.cleanCode(code))
         try await refresh()
+    }
+
+    /// Returning user: switch to an existing account (explicit choice; guest data on this device is not merged).
+    func requestEmailSignIn(email: String) async throws {
+        try await auth.requestEmailSignIn(email: email)
+    }
+
+    func confirmEmailSignIn(email: String, code: String) async throws {
+        try await auth.confirmEmailSignIn(email: email, code: try Self.cleanCode(code))
+        capabilities = nil
+        favorites.reset()
+        try await refresh()
+    }
+
+    func deleteAccount() async throws {
+        try await auth.deleteAccount()
+        capabilities = nil
+        favorites.reset()
+        try await refresh()
+    }
+
+    private static func cleanCode(_ code: String) throws -> String {
+        let digits = code.filter(\.isNumber)
+        guard (6...10).contains(digits.count) else { throw BackendError.invalidOTP }
+        return digits
     }
 
     func updateDisplayName(_ name: String) async throws {
         try await auth.updateDisplayName(name)
+        try await refresh()
+    }
+
+    func updateAvatar(_ photo: PhotoUpload?) async throws {
+        try await auth.updateAvatar(photo)
         try await refresh()
     }
 

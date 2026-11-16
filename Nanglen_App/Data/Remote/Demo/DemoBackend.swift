@@ -6,16 +6,17 @@ import os
 /// It enforces the same rules as the SQL functions (registered-only contributions, one-time
 /// expiring challenges, server-side distance/accuracy/age checks, one current review per user and
 /// venue with revisions, Admin-only approval with an audit trail). It is **not** a server: data
-/// lives in a JSON file on this device and the UI labels the mode "Demo". OTP codes are a fixed
-/// demo value shown in the UI; no SMS is sent.
+/// lives in a JSON file on this device and the UI labels the mode "Demo". Email codes are a fixed
+/// demo value shown in the UI; no email is sent.
 final class DemoBackend: NanglenBackend {
     // MARK: Stored state (Codable, persisted as JSON)
 
     nonisolated struct User: Codable, Hashable {
         var id: UUID
         var isAnonymous: Bool
-        var phone: String?
+        var email: String?
         var displayName: String
+        var avatarPath: String? = nil
     }
 
     nonisolated struct VenueRow: Codable, Hashable {
@@ -145,7 +146,7 @@ final class DemoBackend: NanglenBackend {
     nonisolated struct State: Codable {
         var users: [User] = []
         var currentUserID: UUID?
-        var adminPhones: Set<String> = [DemoSeed.adminPhone]
+        var adminEmails: Set<String> = DemoBackend.defaultAdminEmails
         var venues: [VenueRow] = []
         var providerRefs: [ProviderRef] = []
         var submissions: [SubmissionRow] = []
@@ -159,7 +160,8 @@ final class DemoBackend: NanglenBackend {
         var memberships: [Membership] = []
         var flags: [Flag] = []
         var audit: [AuditRow] = []
-        var pendingPhone: [UUID: String] = [:]
+        var pendingEmailLink: [UUID: String] = [:]
+        var pendingSignIn: [UUID: String] = [:]
     }
 
     // MARK: Configuration
@@ -213,7 +215,7 @@ final class DemoBackend: NanglenBackend {
         var authors: [String: UUID] = [:]
         for (offset, seed) in DemoSeed.reviews.enumerated() {
             let author = authors[seed.author] ?? {
-                let user = User(id: UUID(), isAnonymous: false, phone: nil, displayName: seed.author)
+                let user = User(id: UUID(), isAnonymous: false, email: nil, displayName: seed.author)
                 state.users.append(user)
                 authors[seed.author] = user.id
                 return user.id
@@ -249,8 +251,16 @@ final class DemoBackend: NanglenBackend {
         return user
     }
 
-    private func isRegistered(_ user: User) -> Bool { !user.isAnonymous && user.phone != nil }
-    private func isAdmin(_ user: User) -> Bool { isRegistered(user) && user.phone.map(state.adminPhones.contains) == true }
+    nonisolated static var defaultAdminEmails: Set<String> {
+        #if DEBUG
+        [DemoSeed.adminEmail]
+        #else
+        []
+        #endif
+    }
+
+    private func isRegistered(_ user: User) -> Bool { !user.isAnonymous && user.email != nil }
+    private func isAdmin(_ user: User) -> Bool { isRegistered(user) && user.email.map(state.adminEmails.contains) == true }
 
     private func requireRegistered() throws -> User {
         let user = try currentUser()
@@ -272,7 +282,7 @@ final class DemoBackend: NanglenBackend {
 
     func ensureSession() async throws {
         if let id = state.currentUserID, state.users.contains(where: { $0.id == id }) { return }
-        let user = User(id: UUID(), isAnonymous: true, phone: nil, displayName: "ผู้ใช้ Nanglen")
+        let user = User(id: UUID(), isAnonymous: true, email: nil, displayName: "Nanglen user")
         state.users.append(user)
         state.currentUserID = user.id
         save()
@@ -290,40 +300,103 @@ final class DemoBackend: NanglenBackend {
             favoritesCount: state.favorites[user.id]?.count ?? 0,
             reviewsCount: state.reviews.filter { $0.userID == user.id && $0.status != .removed }.count,
             openSubmissionsCount: state.submissions.filter { $0.submittedBy == user.id && $0.status.canWithdraw }.count,
-            memberships: memberships)
+            memberships: memberships,
+            contactHint: user.email.map(EmailAddress.masked), avatarPath: user.avatarPath)
     }
 
-    func requestPhoneLink(phoneE164: String) async throws {
+    func requestEmailLink(email: String) async throws {
         let user = try currentUser()
-        guard PhoneNumberFormatter.isValidE164(phoneE164) else { throw BackendError.invalidInput("invalid_phone") }
-        if state.users.contains(where: { $0.phone == phoneE164 && $0.id != user.id }) {
-            // Never silently merge or switch accounts.
-            throw BackendError.phoneAlreadyInUse
+        guard let email = EmailAddress.normalized(email) else { throw BackendError.invalidInput("invalid_email") }
+        if state.users.contains(where: { $0.email == email && $0.id != user.id }) {
+            // Never silently merge or switch accounts: the app offers an explicit sign-in instead.
+            throw BackendError.accountExists
         }
-        state.pendingPhone[user.id] = phoneE164
+        state.pendingEmailLink[user.id] = email
         save()
     }
 
-    func confirmPhoneLink(phoneE164: String, code: String) async throws {
+    func confirmEmailLink(email: String, code: String) async throws {
         var user = try currentUser()
-        guard state.pendingPhone[user.id] == phoneE164 else { throw BackendError.invalidOTP }
-        guard code == DemoSeed.demoOTP else { throw BackendError.invalidOTP }
-        if state.users.contains(where: { $0.phone == phoneE164 && $0.id != user.id }) { throw BackendError.phoneAlreadyInUse }
+        guard let email = EmailAddress.normalized(email), state.pendingEmailLink[user.id] == email,
+              code == DemoSeed.demoOTP else { throw BackendError.invalidOTP }
+        if state.users.contains(where: { $0.email == email && $0.id != user.id }) { throw BackendError.accountExists }
         // Same user id is kept: favorites and everything owned stay attached.
-        user.phone = phoneE164
+        user.email = email
         user.isAnonymous = false
         replaceUser(user)
-        state.pendingPhone[user.id] = nil
+        state.pendingEmailLink[user.id] = nil
         save()
+    }
+
+    func requestEmailSignIn(email: String) async throws {
+        let user = try currentUser()
+        guard let email = EmailAddress.normalized(email) else { throw BackendError.invalidInput("invalid_email") }
+        guard state.users.contains(where: { $0.email == email }) else { throw BackendError.notFound }
+        state.pendingSignIn[user.id] = email
+        save()
+    }
+
+    func confirmEmailSignIn(email: String, code: String) async throws {
+        let current = try currentUser()
+        guard let email = EmailAddress.normalized(email), state.pendingSignIn[current.id] == email,
+              code == DemoSeed.demoOTP, let existing = state.users.first(where: { $0.email == email }) else {
+            throw BackendError.invalidOTP
+        }
+        state.pendingSignIn[current.id] = nil
+        state.currentUserID = existing.id
+        save()
+    }
+
+    func deleteAccount() async throws {
+        let user = try currentUser()
+        if isAdmin(user) { throw BackendError.deletionBlocked }
+        let reviewIDs = Set(state.reviews.filter { $0.userID == user.id }.map(\.id))
+        let revisionIDs = Set(state.revisions.filter { reviewIDs.contains($0.reviewID) }.map(\.id))
+        let submissionIDs = Set(state.submissions.filter { $0.submittedBy == user.id }.map(\.id))
+        for media in state.media where media.ownerID == user.id && media.venueID == nil {
+            if let mediaDirectory { try? FileManager.default.removeItem(at: mediaDirectory.appendingPathComponent(media.path)) }
+        }
+        state.media.removeAll { $0.ownerID == user.id && $0.venueID == nil }
+        state.revisions.removeAll { revisionIDs.contains($0.id) }
+        state.reviews.removeAll { reviewIDs.contains($0.id) }
+        state.submissions.removeAll { submissionIDs.contains($0.id) }
+        state.favorites[user.id] = nil
+        state.claims.removeAll { $0.requestedBy == user.id }
+        state.memberships.removeAll { $0.userID == user.id }
+        state.flags.removeAll { $0.userID == user.id }
+        state.challenges.removeAll { $0.userID == user.id }
+        state.verifications.removeAll { $0.userID == user.id }
+        state.users.removeAll { $0.id == user.id }
+        state.currentUserID = nil
+        save()
+        try await ensureSession()
     }
 
     func updateDisplayName(_ name: String) async throws {
         var user = try requireRegistered()
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard (1...40).contains(trimmed.count) else { throw BackendError.invalidInput("invalid_display_name") }
+        let trimmed = DisplayNamePolicy.clean(name)
+        guard (2...40).contains(trimmed.count) else { throw BackendError.invalidInput("invalid_display_name") }
+        if !isAdmin(user), DisplayNamePolicy.isReserved(trimmed) { throw BackendError.invalidInput("reserved_display_name") }
         user.displayName = trimmed
         replaceUser(user)
         save()
+    }
+
+    func updateAvatar(_ photo: PhotoUpload?) async throws {
+        var user = try requireRegistered()
+        let previous = user.avatarPath
+        if let photo {
+            let path = "avatars/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
+            try writeMedia(photo.data, path: path)
+            user.avatarPath = path
+        } else {
+            user.avatarPath = nil
+        }
+        replaceUser(user)
+        save()
+        if let previous, let mediaDirectory {
+            try? FileManager.default.removeItem(at: mediaDirectory.appendingPathComponent(previous))
+        }
     }
 
     func signOut() async throws {
@@ -365,7 +438,8 @@ final class DemoBackend: NanglenBackend {
         return VenueSummary(
             id: venue.id, name: venue.name, category: venue.category, address: venue.address, coordinate: point,
             status: venue.status, rating: rating, topTags: Array(tagCounts(venueID: venue.id).prefix(3).map(\.slug)),
-            coverPath: state.media.first { $0.venueID == venue.id && $0.status == "approved" }?.path,
+            coverPath: state.media.first { $0.venueID == venue.id && $0.status == "approved" }?.path
+                ?? DemoSeed.photoURLs(for: venue.id).first,
             distanceMeters: distance, rankScore: ranker.score(rating: rating, distanceMeters: distance, relevance: relevance))
     }
 
@@ -382,6 +456,17 @@ final class DemoBackend: NanglenBackend {
         }
         if let minimum = query.filter.minimumRating.value {
             results = results.filter { ($0.rating.average ?? 0) >= minimum }
+        }
+        if query.filter.reviewedOnly {
+            results = results.filter(\.rating.hasReviews)
+        }
+        if !query.filter.tags.isEmpty {
+            guard query.filter.tags.count <= 5 else { throw BackendError.invalidInput("too_many_tags") }
+            guard query.filter.tags.allSatisfy({ ReviewTag.named($0) != nil }) else { throw BackendError.invalidInput("unknown_tag") }
+            results = results.filter { venue in
+                let counts = Dictionary(uniqueKeysWithValues: tagCounts(venueID: venue.id).map { ($0.slug, $0.count) })
+                return query.filter.tags.allSatisfy { (counts[$0] ?? 0) >= 1 }
+            }
         }
         let sorted = ranker.sort(results, by: query.filter.sort)
         let page = Array(sorted.dropFirst(query.offset).prefix(query.limit))
@@ -420,9 +505,10 @@ final class DemoBackend: NanglenBackend {
             ratingDistribution: distribution,
             lastReviewAt: currentPublishedRevisions(venueID: id).map(\.createdAt).max(),
             tagCounts: tagCounts(venueID: id),
-            photoPaths: state.media.filter { $0.venueID == id && $0.status == "approved" }.map(\.path),
+            photoPaths: state.media.filter { $0.venueID == id && $0.status == "approved" }.map(\.path) + DemoSeed.photoURLs(for: id),
             isFavorite: user.map { state.favorites[$0.id]?.contains(id) == true } ?? false,
-            isManagedByMe: managed, myReview: myReview)
+            isManagedByMe: managed, myReview: myReview,
+            panoramaPath: DemoSeed.panoramaURL(for: id))
     }
 
     func matchProviderRefs(provider: String, externalIDs: [String]) async throws -> [String: UUID] {
@@ -453,7 +539,7 @@ final class DemoBackend: NanglenBackend {
         let page = sorted.dropFirst(offset).prefix(limit).map { review, revision in
             PublishedReview(
                 id: review.id,
-                authorName: state.users.first { $0.id == review.userID }?.displayName ?? "ผู้ใช้ Nanglen",
+                authorName: state.users.first { $0.id == review.userID }?.displayName ?? "Nanglen user",
                 rating: revision.rating, purpose: revision.purpose, body: revision.body, tags: revision.tags.sorted(),
                 photoPaths: state.media.filter { $0.kind == "review" && $0.parentID == revision.id && $0.status == "approved" }.map(\.path),
                 revisionNumber: revision.number, updatedAt: revision.createdAt, isMine: review.userID == me?.id,
@@ -463,9 +549,13 @@ final class DemoBackend: NanglenBackend {
     }
 
     func signedMediaURLs(paths: [String], bucket: MediaBucket) async throws -> [String: URL] {
-        guard let mediaDirectory else { return [:] }
         var result: [String: URL] = [:]
-        for path in paths {
+        // Demo seed media is already a public https URL (see `DemoSeed.photos`).
+        for path in paths where path.hasPrefix("https://") {
+            result[path] = URL(string: path)
+        }
+        guard let mediaDirectory else { return result }
+        for path in paths where !path.hasPrefix("https://") {
             let url = mediaDirectory.appendingPathComponent(path)
             if FileManager.default.fileExists(atPath: url.path) { result[path] = url }
         }
@@ -606,7 +696,7 @@ final class DemoBackend: NanglenBackend {
         guard state.revisions.contains(where: { $0.id == revisionID && $0.userID == user.id }) else { throw BackendError.notFound }
         guard photo.data.count <= 5 * 1_024 * 1_024 else { throw BackendError.invalidInput("file_too_large") }
         guard state.media.filter({ $0.parentID == revisionID }).count < 3 else { throw BackendError.invalidInput("too_many_photos") }
-        let path = "\(user.id.uuidString.lowercased())/\(revisionID.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
+        let path = "\(revisionID.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
         try writeMedia(photo.data, path: path)
         state.media.append(MediaRow(path: path, kind: "review", parentID: revisionID, ownerID: user.id, status: "pending", venueID: nil))
         save()
@@ -701,7 +791,7 @@ final class DemoBackend: NanglenBackend {
         }
         guard photo.data.count <= 5 * 1_024 * 1_024 else { throw BackendError.invalidInput("file_too_large") }
         guard state.media.filter({ $0.parentID == submissionID }).count < 5 else { throw BackendError.invalidInput("too_many_photos") }
-        let path = "\(user.id.uuidString.lowercased())/\(submissionID.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
+        let path = "\(submissionID.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
         try writeMedia(photo.data, path: path)
         state.media.append(MediaRow(path: path, kind: "submission", parentID: submissionID, ownerID: user.id, status: "pending", venueID: nil))
         save()
@@ -908,11 +998,11 @@ final class DemoBackend: NanglenBackend {
     /// Number of append-only audit events (tests).
     var auditCount: Int { state.audit.count }
 
-    /// Test hook: resume the session of an existing demo user by phone (simulates signing in on a
+    /// Test hook: resume the session of an existing demo user by email (simulates signing in on a
     /// device where that user's session is stored). Returns false when no such user exists.
     @discardableResult
-    func resumeSessionForTesting(phone: String) -> Bool {
-        guard let user = state.users.first(where: { $0.phone == phone }) else { return false }
+    func resumeSessionForTesting(email: String) -> Bool {
+        guard let user = state.users.first(where: { $0.email == email }) else { return false }
         state.currentUserID = user.id
         return true
     }

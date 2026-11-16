@@ -106,6 +106,8 @@ nonisolated struct VenueDetail: Hashable, Sendable {
     var isFavorite: Bool
     var isManagedByMe: Bool
     var myReview: MyReview?
+    /// Storage path of an equirectangular (2:1) 360° photo of the place, when the team or owner added one.
+    var panoramaPath: String? = nil
 
     var id: UUID { summary.id }
 }
@@ -190,12 +192,50 @@ nonisolated struct VenueFilter: Hashable, Sendable {
     var sort: Sort = .relevance
     var distance: Distance = .km3
     var minimumRating: MinimumRating = .any
+    /// "Good for" community tags; a venue must have each tag chosen by visitors.
+    var tags: Set<String> = []
+    var reviewedOnly = false
 
     static let `default` = VenueFilter()
+    static let maxTags = 3
+    /// Tags offered as filters (positive "good for" impressions; "expensive" is not a filter).
+    static let goodForTags = ["study_friendly", "work_friendly", "quiet", "good_wifi", "power_outlets",
+                              "comfortable_seating", "good_lighting", "good_value", "lively"]
 
     /// Number of non-default choices, shown as a badge on the filter button.
     var activeCount: Int {
-        [sort != .relevance, distance != .km3, minimumRating != .any].filter { $0 }.count
+        tags.count + [sort != .relevance, distance != .km3, minimumRating != .any, reviewedOnly].filter { $0 }.count
+    }
+
+    /// Active choices in display order, for removable summary chips.
+    enum Item: Hashable, Sendable {
+        case tag(String), minimumRating, reviewedOnly, distance, sort
+    }
+
+    var activeItems: [Item] {
+        var items: [Item] = tags.sorted { (Self.goodForTags.firstIndex(of: $0) ?? 99) < (Self.goodForTags.firstIndex(of: $1) ?? 99) }.map(Item.tag)
+        if minimumRating != .any { items.append(.minimumRating) }
+        if reviewedOnly { items.append(.reviewedOnly) }
+        if distance != .km3 { items.append(.distance) }
+        if sort != .relevance { items.append(.sort) }
+        return items
+    }
+
+    mutating func remove(_ item: Item) {
+        switch item {
+        case .tag(let slug): tags.remove(slug)
+        case .minimumRating: minimumRating = .any
+        case .reviewedOnly: reviewedOnly = false
+        case .distance: distance = .km3
+        case .sort: sort = .relevance
+        }
+    }
+
+    /// Local check used for cached/offline results (server applies the authoritative filter).
+    func matches(_ venue: VenueSummary) -> Bool {
+        if let minimum = minimumRating.value, (venue.rating.average ?? 0) < minimum { return false }
+        if reviewedOnly, !venue.rating.hasReviews { return false }
+        return tags.allSatisfy(venue.topTags.contains)
     }
 }
 

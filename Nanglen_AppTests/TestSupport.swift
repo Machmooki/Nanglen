@@ -5,7 +5,7 @@ import Testing
 /// Deterministic fixtures — no live GPS, no live MapKit, no network.
 enum Fixtures {
     static let now = Date(timeIntervalSince1970: 1_800_000_000)
-    /// Demo seed venue 1 (ใบชา คาเฟ่) and its coordinate.
+    /// Demo seed venue 1 (Baicha Café) and its coordinate.
     static let cafeID = UUID(uuidString: "00000000-0000-4000-8000-000000000001")!
     static let cafe = GeoPoint(latitude: 13.7462, longitude: 100.5326)
     static let libraryID = UUID(uuidString: "00000000-0000-4000-8000-000000000002")!
@@ -39,13 +39,13 @@ func makeBackend(clock: TestClock = TestClock()) -> DemoBackend {
     DemoBackend(directory: nil, seed: true, clock: { clock.now })
 }
 
-/// Signs in a new Guest and links a phone (Registered). Returns the backend for chaining.
+/// Signs in a new Guest and verifies an email (Registered), or resumes that user if it exists.
 @MainActor
-func registerUser(_ backend: DemoBackend, phone: String = "+66811111111") async throws {
-    if backend.resumeSessionForTesting(phone: phone) { return }
+func registerUser(_ backend: DemoBackend, email: String = "one@example.test") async throws {
+    if backend.resumeSessionForTesting(email: email) { return }
     try await backend.signOut() // fresh anonymous session
-    try await backend.requestPhoneLink(phoneE164: phone)
-    try await backend.confirmPhoneLink(phoneE164: phone, code: DemoSeed.demoOTP)
+    try await backend.requestEmailLink(email: email)
+    try await backend.confirmEmailLink(email: email, code: DemoSeed.demoOTP)
 }
 
 /// Mock location provider with scripted readings.

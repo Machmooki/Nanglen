@@ -103,11 +103,40 @@ struct ValidatorTests {
         #expect(SubmissionValidator.issues(draft) == [.invalidWebsite])
     }
 
-    @Test func thaiPhoneNumbersNormalizeToE164() {
-        #expect(PhoneNumberFormatter.e164(from: "081 234 5678") == "+66812345678")
-        #expect(PhoneNumberFormatter.e164(from: "+66 81 234 5678") == "+66812345678")
-        #expect(PhoneNumberFormatter.e164(from: "abc") == nil)
-        #expect(PhoneNumberFormatter.masked("+66812345678") == "+66 •••• 5678")
+    @Test func emailsNormalizeAndMask() {
+        #expect(EmailAddress.normalized("  Mint@Gmail.com ") == "mint@gmail.com")
+        #expect(EmailAddress.normalized("no-at-sign") == nil)
+        #expect(EmailAddress.normalized("a@b") == nil)
+        #expect(EmailAddress.normalized("a@@b.com") == nil)
+        #expect(EmailAddress.normalized("a b@c.com") == nil)
+        #expect(EmailAddress.masked("mint@gmail.com") == "m•••@gmail.com")
+    }
+
+    @Test func displayNamePolicy() {
+        #expect(DisplayNamePolicy.clean(" Mint\u{200B}\u{202E}  Reader\n") == "Mint Reader")
+        #expect(DisplayNamePolicy.isReserved("Official Nanglen"))
+        #expect(DisplayNamePolicy.isReserved("แอดมินร้าน"))
+        #expect(!DisplayNamePolicy.isReserved("Mint"))
+    }
+
+    @Test func onlyWebLinksAreOpened() {
+        #expect(SafeLink.isWebURL(URL(string: "https://example.com")!))
+        #expect(!SafeLink.isWebURL(URL(string: "javascript:alert(1)")!))
+        #expect(!SafeLink.isWebURL(URL(string: "file:///etc/passwd")!))
+        #expect(!SafeLink.isWebURL(URL(string: "https://user:pw@evil.example")!))
+        #expect(!SafeLink.isWebURL(URL(string: "tel:123")!))
+    }
+
+    @Test func filterSummaryAndRemoval() {
+        var filter = VenueFilter()
+        filter.tags = ["quiet", "study_friendly"]
+        filter.minimumRating = .four
+        filter.reviewedOnly = true
+        #expect(filter.activeCount == 4)
+        #expect(filter.activeItems == [.tag("study_friendly"), .tag("quiet"), .minimumRating, .reviewedOnly])
+        filter.remove(.tag("quiet"))
+        filter.remove(.minimumRating)
+        #expect(filter.activeItems == [.tag("study_friendly"), .reviewedOnly])
     }
 
     @Test func backendErrorMapping() {

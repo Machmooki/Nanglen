@@ -29,21 +29,36 @@ enable_anonymous_sign_ins = true
 enable_manual_linking = true
 
 [auth.rate_limit]
-anonymous_users = 30
-sms_sent = 30
-token_verifications = 30
+anonymous_users = 30          # per hour per IP
+email_sent = 30               # per hour (custom SMTP raises the real limit)
+token_verifications = 30      # per 5 minutes per IP (OTP brute-force protection)
 
-[auth.sms]
+# Free launch identity: verified email (6-digit OTP). SMS is disabled because it is billed per message.
+[auth.email]
 enable_signup = true
 enable_confirmations = true
+double_confirm_changes = false
+secure_password_change = true
 max_frequency = "60s"
-# LOCAL ONLY test OTPs (never in production): phone number = code.
-[auth.sms.test_otp]
-66800000001 = "123456"
-66800000002 = "123456"
+otp_length = 6
+otp_expiry = 600
 
-[auth.email]
+# Anonymous user -> linking an email sends this template. It must show {{ .Token }} (code), not a link.
+[auth.email.template.email_change]
+subject = "Your Nanglen code"
+content_path = "./supabase/templates/email_otp.html"
+
+# Returning user signing in on a new device.
+[auth.email.template.magic_link]
+subject = "Your Nanglen sign-in code"
+content_path = "./supabase/templates/email_otp.html"
+
+[auth.sms]
 enable_signup = false
+enable_confirmations = false
+
+# Production: configure free custom SMTP (e.g. Brevo free tier, or Gmail with an app password)
+# in Dashboard > Authentication > SMTP. The built-in sender only delivers to project team members.
 
 [storage]
 enabled = true
@@ -58,3 +73,8 @@ allowed_mime_types = ["image/jpeg", "image/png", "image/heic", "image/webp"]
 public = false
 file_size_limit = "5MiB"
 allowed_mime_types = ["image/jpeg", "image/png", "image/heic", "image/webp"]
+
+[storage.buckets.avatars]
+public = false
+file_size_limit = "2MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]

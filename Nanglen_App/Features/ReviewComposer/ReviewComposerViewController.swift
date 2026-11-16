@@ -119,8 +119,8 @@ final class ReviewComposerViewController: UIViewController {
             viewModel?.verify()
         case .openSettings:
             if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-        case .linkPhone:
-            presentPhoneLink()
+        case .verifyEmail:
+            presentSignIn()
         }
     }
 
@@ -131,15 +131,15 @@ final class ReviewComposerViewController: UIViewController {
             let presenter = presentingViewController
             dismiss(animated: true) { presenter?.showToast(message) }
         case .needsRegistration:
-            presentPhoneLink()
+            presentSignIn()
         }
     }
 
-    private func presentPhoneLink() {
+    private func presentSignIn() {
         guard let container,
-              let navigation = storyboard?.instantiateViewController(withIdentifier: "PhoneLinkNavigationController") as? UINavigationController,
-              let phone = navigation.topViewController as? PhoneLinkViewController else { return }
-        phone.configure(viewModel: container.makePhoneLinkViewModel(), isDemo: container.isDemo) { [weak self] in
+              let navigation = storyboard?.instantiateViewController(withIdentifier: "SignInNavigationController") as? UINavigationController,
+              let phone = navigation.topViewController as? SignInViewController else { return }
+        phone.configure(viewModel: container.makeSignInViewModel(), isDemo: container.isDemo) { [weak self] in
             self?.viewModel?.verify()
         }
         present(navigation, animated: true)

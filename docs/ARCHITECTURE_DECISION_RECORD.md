@@ -5,7 +5,7 @@
 
 ## Context
 
-Nanglen needs: anonymous Guest → verified-phone Registered upgrade that keeps the same user id; relational data with transactional workflows (submission approval creates a venue + provider ref + audit row atomically; review submission consumes a one-time verification and writes a revision atomically); geospatial radius search and server-side distance checks; strict per-row authorization; private media; Admin audit trail; scoped business memberships; a small team with predictable cost.
+Nanglen needs: anonymous Guest → verified-identity Registered upgrade that keeps the same user id; relational data with transactional workflows (submission approval creates a venue + provider ref + audit row atomically; review submission consumes a one-time verification and writes a revision atomically); geospatial radius search and server-side distance checks; strict per-row authorization; private media; Admin audit trail; scoped business memberships; a small team with predictable cost.
 
 ## Options compared
 
@@ -16,7 +16,7 @@ Nanglen needs: anonymous Guest → verified-phone Registered upgrade that keeps 
 | Geospatial | PostGIS `geography`, GiST, `ST_DWithin`, `ST_Distance` | Geohash queries only; distance filtering on client/functions | PostGIS |
 | Authorization | Postgres RLS + grants + `auth.uid()`/JWT claims | Security Rules (good, but no SQL invariants) | Must be hand-built in API layer |
 | Media | Storage with RLS on `storage.objects` | Cloud Storage + rules | Must integrate S3 etc. |
-| Anonymous → phone linking | Anonymous sign-ins + `updateUser(phone:)` + `verifyOTP(type: .phoneChange)` keeps the uid (manual linking must be enabled) | Anonymous + `linkWithCredential` keeps uid | Build yourself |
+| Anonymous → identity linking | Anonymous sign-ins + `updateUser(email:)` + `verifyOTP(type: .emailChange)` keeps the uid (free email OTP; phone OTP possible but SMS is billed) (manual linking must be enabled) | Anonymous + `linkWithCredential` keeps uid | Build yourself |
 | Search | `pg_trgm` + ranking in SQL RPC | Needs external search (Algolia/Typesense) | Same as 1 |
 | Offline | GRDB cache we control | Built-in offline cache (multi-master semantics we do not want) | GRDB |
 | Swift integration | Official `supabase-swift` (v2.55.6 verified) | Official Firebase SDK | URLSession client to write |
@@ -47,3 +47,7 @@ A second implementation of the same contract, **`DemoBackend`** (in-process, per
 
 - `supabase-swift` 2.55.6 resolved via SPM. API used: `SupabaseClient(supabaseURL:supabaseKey:options:)`, `auth.signInAnonymously()`, `auth.update(user: UserAttributes(phone:))`, `auth.verifyOTP(phone:token:type: .phoneChange)`, `auth.session`, `client.rpc(_:params:)`, `storage.from(_:).upload(_:data:options:)`, `createSignedURL(path:expiresIn:)`.
 - Pricing/limits were **not** re-checked online in this session; see `SCALABILITY_AND_COST_ANALYSIS.md` for assumption-labelled estimates.
+
+## Amendment (2026-11-09): free identity
+
+Phone OTP requires a billed SMS provider. The launch identity for **Registered** is now a **verified email (6-digit OTP)**, which is free with any SMTP sender. `private.app_settings.registered_via_email = 1`, `registered_via_phone = 0`; phone can be re-enabled later without a migration. Linking an email that already has an account never merges: the user explicitly signs in to that account instead (`signInWithOTP(email:shouldCreateUser: false)`). Sign in with Apple was considered but needs a paid Apple Developer Program membership; it can be added later via `signInWithIdToken`/`linkIdentityWithIdToken`.

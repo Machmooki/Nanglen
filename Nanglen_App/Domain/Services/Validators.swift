@@ -68,36 +68,47 @@ nonisolated enum SubmissionValidator {
     }
 }
 
-/// Thai-first phone normalization to E.164 (e.g. "081 234 5678" → "+66812345678").
-nonisolated enum PhoneNumberFormatter {
-    static func e164(from input: String, defaultCountryCode: String = "66") -> String? {
-        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        let digits = trimmed.filter(\.isNumber)
-        guard !digits.isEmpty else { return nil }
-        let candidate: String
-        if trimmed.hasPrefix("+") {
-            candidate = "+" + digits
-        } else if digits.hasPrefix("00") {
-            candidate = "+" + digits.dropFirst(2)
-        } else if digits.hasPrefix("0") {
-            candidate = "+" + defaultCountryCode + digits.dropFirst()
-        } else if digits.hasPrefix(defaultCountryCode) {
-            candidate = "+" + digits
-        } else {
-            candidate = "+" + defaultCountryCode + digits
-        }
-        return isValidE164(candidate) ? candidate : nil
+/// Email normalisation and masking. The backend verifies ownership with a one-time code.
+nonisolated enum EmailAddress {
+    static func normalized(_ input: String) -> String? {
+        let value = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard value.count <= 254, value.filter({ $0 == "@" }).count == 1 else { return nil }
+        let parts = value.split(separator: "@", omittingEmptySubsequences: false)
+        guard parts.count == 2, !parts[0].isEmpty, parts[0].count <= 64,
+              parts[1].contains("."), !parts[1].hasPrefix("."), !parts[1].hasSuffix("."),
+              value.allSatisfy({ !$0.isWhitespace && !$0.isNewline }) else { return nil }
+        return value
     }
 
-    static func isValidE164(_ value: String) -> Bool {
-        guard value.hasPrefix("+") else { return false }
-        let digits = value.dropFirst()
-        return (8...15).contains(digits.count) && digits.allSatisfy(\.isNumber) && digits.first != "0"
+    /// "mint@gmail.com" → "m•••@gmail.com".
+    static func masked(_ email: String) -> String {
+        let parts = email.split(separator: "@", maxSplits: 1)
+        guard parts.count == 2, let first = parts[0].first else { return "•••" }
+        return "\(first)•••@\(parts[1])"
+    }
+}
+
+/// Mirrors the server's display-name rules (`update_my_display_name`) for instant feedback.
+nonisolated enum DisplayNamePolicy {
+    private static let invisible = CharacterSet(charactersIn: "\u{200B}\u{200C}\u{200D}\u{200E}\u{200F}\u{202A}\u{202B}\u{202C}\u{202D}\u{202E}\u{2060}\u{2066}\u{2067}\u{2068}\u{2069}\u{FEFF}")
+        .union(.controlCharacters)
+    private static let reserved = ["admin", "moderator", "nanglen", "official", "support", "staff", "ผู้ดูแล", "แอดมิน", "ทีมงาน"]
+
+    static func clean(_ name: String) -> String {
+        let visible = String(String.UnicodeScalarView(name.unicodeScalars.filter { !invisible.contains($0) }))
+        return visible.split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 
-    /// Masked for display, e.g. "+66 •••• 5678".
-    static func masked(_ e164: String) -> String {
-        guard e164.count > 6 else { return e164 }
-        return "\(e164.prefix(3)) •••• \(e164.suffix(4))"
+    static func isReserved(_ name: String) -> Bool {
+        let lower = name.lowercased()
+        return reserved.contains { lower.contains($0) }
+    }
+}
+
+/// Only plain web links from user-submitted data are ever opened (no `javascript:`, app schemes, files).
+nonisolated enum SafeLink {
+    static func isWebURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased(), scheme == "https" || scheme == "http" else { return false }
+        return url.host?.isEmpty == false && url.user == nil && url.password == nil
     }
 }

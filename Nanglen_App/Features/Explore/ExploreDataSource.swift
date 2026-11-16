@@ -17,8 +17,8 @@ final class ExploreDataSource {
     init(tableView: UITableView) {
         let store = store
         diffable = UITableViewDiffableDataSource(tableView: tableView) { tableView, indexPath, id in
-            let cell = tableView.dequeueReusableCell(withIdentifier: PlaceCardCell.reuseIdentifier, for: indexPath)
-            if let card = cell as? PlaceCardCell, let item = store.items[id] {
+            let cell = tableView.dequeueReusableCell(withIdentifier: ExplorePlaceCardCell.reuseIdentifier, for: indexPath)
+            if let card = cell as? ExplorePlaceCardCell, let item = store.items[id] {
                 card.configure(with: item)
             }
             return cell

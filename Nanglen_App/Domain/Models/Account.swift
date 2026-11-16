@@ -13,6 +13,10 @@ nonisolated struct UserCapabilities: Hashable, Sendable {
     var reviewsCount: Int
     var openSubmissionsCount: Int
     var memberships: [BusinessMembership]
+    /// Masked verified email (e.g. "m•••@gmail.com"); never the full address.
+    var contactHint: String? = nil
+    /// Storage path of the profile photo in the `avatars` bucket, if one is set.
+    var avatarPath: String? = nil
 
     var isGuest: Bool { !isRegistered }
     var isBusinessOwner: Bool { !memberships.isEmpty }

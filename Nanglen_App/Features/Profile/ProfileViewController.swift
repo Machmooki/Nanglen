@@ -1,10 +1,11 @@
+import PhotosUI
 import UIKit
 
 /// Profile (Storyboard `ProfileViewController`, a table view controller with prototype cells).
 /// Business/Admin rows appear only when the backend says so; the backend still enforces every action.
 final class ProfileViewController: UITableViewController, AppContainerConfigurable {
     private enum Segue {
-        static let presentPhoneLink = "presentPhoneLink"
+        static let presentSignIn = "presentSignIn"
         static let presentAddPlace = "presentAddPlace"
         static let showMySubmissions = "showMySubmissions"
         static let showAdminQueue = "showAdminQueue"
@@ -12,12 +13,12 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
 
     private enum Row: Equatable {
         case header
-        case linkPhone, editName
+        case verifyEmail, photo, editName
         case saved, reviews, addPlace, mySubmissions
         case business(BusinessMembership)
         case claim(VenueClaim)
         case moderation
-        case location, backend, clearCache, signOut, version
+        case location, backend, clearCache, signOut, deleteAccount, version
     }
 
     private struct Section {
@@ -58,9 +59,9 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         let caps = state.capabilities
         var result: [Section] = [Section(rows: [.header])]
         if caps?.isRegistered == true {
-            result.append(Section(rows: [.editName]))
+            result.append(Section(rows: [.photo, .editName]))
         } else {
-            result.append(Section(footer: L10n.Account.guestMessage, rows: [.linkPhone]))
+            result.append(Section(footer: L10n.Account.guestMessage, rows: [.verifyEmail]))
         }
         result.append(Section(title: L10n.Profile.contributions, rows: [.saved, .reviews, .addPlace, .mySubmissions]))
         if let memberships = caps?.memberships, !memberships.isEmpty || !state.claims.isEmpty {
@@ -72,7 +73,7 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
             result.append(Section(title: L10n.Profile.admin, rows: [.moderation]))
         }
         var settings: [Row] = [.location, .backend, .clearCache]
-        if caps?.isRegistered == true { settings.append(.signOut) }
+        if caps?.isRegistered == true { settings += [.signOut, .deleteAccount] }
         settings.append(.version)
         let footer = [state.mode == .demo ? L10n.Profile.demoExplain : nil, L10n.Profile.privacy].compactMap { $0 }.joined(separator: "\n\n")
         result.append(Section(title: L10n.Profile.settings, footer: footer, rows: settings))
@@ -91,7 +92,13 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         let row = sections[indexPath.section].rows[indexPath.row]
         if row == .header {
             let cell = tableView.dequeueReusableCell(withIdentifier: ProfileHeaderCell.reuseIdentifier, for: indexPath)
-            (cell as? ProfileHeaderCell)?.configure(capabilities: state.capabilities, isDemo: state.mode == .demo)
+            let header = cell as? ProfileHeaderCell
+            header?.configure(capabilities: state.capabilities, isDemo: state.mode == .demo,
+                              avatarURL: state.avatarURL, isUploading: state.isUploadingPhoto)
+            header?.onAvatarTap = { [weak self, weak cell] in
+                guard let self, let cell, state.capabilities?.isRegistered == true else { return }
+                presentPhotoOptions(from: cell)
+            }
             return cell
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileValueCell", for: indexPath)
@@ -101,11 +108,17 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         let caps = state.capabilities
         switch row {
         case .header: break
-        case .linkPhone:
+        case .verifyEmail:
             content = .subtitleCell()
-            content.text = L10n.Account.linkPhone
-            content.secondaryText = L10n.Account.linkPhoneBenefit
-            content.image = UIImage(systemName: "phone.badge.checkmark")
+            content.text = L10n.Account.verifyEmail
+            content.secondaryText = L10n.Account.verifyEmailShort
+            content.image = UIImage(systemName: "envelope.badge.shield.half.filled")
+            accessory = .disclosureIndicator
+        case .photo:
+            content.text = L10n.Profile.photo
+            content.secondaryText = state.isUploadingPhoto ? L10n.Profile.photoUploading
+                : (state.capabilities?.avatarPath == nil ? L10n.Profile.photoAdd : L10n.Profile.photoChange)
+            content.image = UIImage(systemName: "person.crop.circle")
             accessory = .disclosureIndicator
         case .editName:
             content.text = L10n.Profile.editName
@@ -163,6 +176,11 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         case .clearCache:
             content.text = L10n.Profile.clearCache
             content.image = UIImage(systemName: "trash")
+        case .deleteAccount:
+            content.text = L10n.Profile.deleteAccount
+            content.image = UIImage(systemName: "person.crop.circle.badge.xmark")
+            tint = AppColors.bad
+            content.textProperties.color = AppColors.bad
         case .signOut:
             content.text = L10n.Profile.signOut
             content.image = UIImage(systemName: "rectangle.portrait.and.arrow.right")
@@ -186,23 +204,56 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         tableView.deselectRow(at: indexPath, animated: true)
         let row = sections[indexPath.section].rows[indexPath.row]
         switch row {
-        case .linkPhone: performSegue(withIdentifier: Segue.presentPhoneLink, sender: self)
+        case .verifyEmail: performSegue(withIdentifier: Segue.presentSignIn, sender: self)
         case .addPlace: performSegue(withIdentifier: Segue.presentAddPlace, sender: self)
         case .mySubmissions: performSegue(withIdentifier: Segue.showMySubmissions, sender: self)
         case .moderation: performSegue(withIdentifier: Segue.showAdminQueue, sender: self)
         case .editName: promptDisplayName()
+        case .photo:
+            if let cell = tableView.cellForRow(at: indexPath) { presentPhotoOptions(from: cell) }
         case .location:
             if state.location != .notDetermined, let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
         case .clearCache:
             confirm(title: L10n.Profile.clearCache, message: L10n.Profile.clearCacheConfirm, action: L10n.Profile.clearCache) { [weak self] in self?.viewModel?.clearCache() }
+        case .deleteAccount:
+            confirm(title: L10n.Profile.deleteAccount, message: L10n.Profile.deleteAccountConfirm, action: L10n.Profile.deleteAccount) { [weak self] in
+                self?.viewModel?.deleteAccount()
+            }
         case .signOut:
             confirm(title: L10n.Profile.signOut, message: L10n.Profile.signOutConfirm, action: L10n.Profile.signOut) { [weak self] in self?.viewModel?.signOut() }
         default: break
         }
     }
 
+    // MARK: Profile photo
+
+    private func presentPhotoOptions(from sourceView: UIView) {
+        guard !state.isUploadingPhoto else { return }
+        let hasPhoto = state.capabilities?.avatarPath != nil
+        let sheet = UIAlertController(title: L10n.Profile.photo, message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: L10n.Profile.photoChoose, style: .default) { [weak self] _ in self?.pickProfilePhoto() })
+        if hasPhoto {
+            sheet.addAction(UIAlertAction(title: L10n.Profile.photoRemove, style: .destructive) { [weak self] _ in
+                self?.viewModel?.setProfilePhoto(nil)
+            })
+        }
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        sheet.popoverPresentationController?.sourceView = sourceView
+        sheet.popoverPresentationController?.sourceRect = sourceView.bounds
+        present(sheet, animated: true)
+    }
+
+    private func pickProfilePhoto() {
+        var configuration = PHPickerConfiguration()
+        configuration.filter = .images
+        configuration.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
     private func promptDisplayName() {
-        let alert = UIAlertController(title: L10n.Profile.editName, message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(title: L10n.Profile.editName, message: L10n.Profile.renameRules, preferredStyle: .alert)
         alert.addTextField { [weak self] field in
             field.text = self?.state.capabilities?.displayName
             field.autocapitalizationType = .words
@@ -224,9 +275,9 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard let container else { return }
         switch segue.identifier {
-        case Segue.presentPhoneLink:
-            ((segue.destination as? UINavigationController)?.topViewController as? PhoneLinkViewController)?
-                .configure(viewModel: container.makePhoneLinkViewModel(), isDemo: container.isDemo)
+        case Segue.presentSignIn:
+            ((segue.destination as? UINavigationController)?.topViewController as? SignInViewController)?
+                .configure(viewModel: container.makeSignInViewModel(), isDemo: container.isDemo)
         case Segue.presentAddPlace:
             ((segue.destination as? UINavigationController)?.topViewController as? AddPlaceViewController)?
                 .configure(viewModel: container.makeAddPlaceViewModel(), container: container)
@@ -249,6 +300,11 @@ final class ProfileHeaderCell: UITableViewCell {
     @IBOutlet private weak var identifierLabel: UILabel!
     @IBOutlet private weak var sinceLabel: UILabel!
 
+    var onAvatarTap: (() -> Void)?
+    private let photoView = RemoteImageView()
+    private let spinner = UIActivityIndicatorView(style: .medium)
+    private let cameraBadge = UIImageView(image: UIImage(systemName: "camera.circle.fill"))
+
     // UIView declares awakeFromNib nonisolated; nibs always load on the main thread.
     nonisolated override func awakeFromNib() {
         super.awakeFromNib()
@@ -264,10 +320,62 @@ final class ProfileHeaderCell: UITableViewCell {
         nameLabel.apply(AppTypography.title)
         identifierLabel.apply(AppTypography.subheadlineEmphasized, color: AppColors.primary)
         sinceLabel.apply(AppTypography.footnote, color: AppColors.textTertiary)
+
+        // Profile photo sits on top of the symbol; the badge hints that the avatar is tappable.
+        avatarView.clipsToBounds = true
+        photoView.layer.cornerRadius = 0
+        photoView.isHidden = true
+        spinner.color = .white
+        spinner.hidesWhenStopped = true
+        cameraBadge.tintColor = AppColors.primary
+        cameraBadge.backgroundColor = AppColors.card
+        cameraBadge.layer.cornerRadius = 12
+        cameraBadge.clipsToBounds = true
+        cameraBadge.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22, weight: .semibold)
+        cameraBadge.isHidden = true
+        [photoView, spinner].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            avatarView.addSubview($0)
+        }
+        cameraBadge.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(cameraBadge)
+        NSLayoutConstraint.activate([
+            photoView.topAnchor.constraint(equalTo: avatarView.topAnchor),
+            photoView.bottomAnchor.constraint(equalTo: avatarView.bottomAnchor),
+            photoView.leadingAnchor.constraint(equalTo: avatarView.leadingAnchor),
+            photoView.trailingAnchor.constraint(equalTo: avatarView.trailingAnchor),
+            spinner.centerXAnchor.constraint(equalTo: avatarView.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: avatarView.centerYAnchor),
+            cameraBadge.widthAnchor.constraint(equalToConstant: 24),
+            cameraBadge.heightAnchor.constraint(equalToConstant: 24),
+            cameraBadge.trailingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 2),
+            cameraBadge.bottomAnchor.constraint(equalTo: avatarView.bottomAnchor, constant: 2),
+        ])
+        avatarView.isUserInteractionEnabled = true
+        avatarView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(avatarTapped)))
     }
 
-    func configure(capabilities: UserCapabilities?, isDemo: Bool) {
+    @objc private func avatarTapped() {
+        onAvatarTap?()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        avatarView.layer.cornerRadius = avatarView.bounds.height / 2
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        onAvatarTap = nil
+    }
+
+    func configure(capabilities: UserCapabilities?, isDemo: Bool, avatarURL: URL? = nil, isUploading: Bool = false) {
         let caps = capabilities
+        photoView.isHidden = avatarURL == nil
+        photoView.load(avatarURL, maxPixelSize: 512)
+        if isUploading { spinner.startAnimating() } else { spinner.stopAnimating() }
+        photoView.alpha = isUploading ? 0.5 : 1
+        cameraBadge.isHidden = caps?.isRegistered != true
         nameLabel.text = caps?.isRegistered == true ? caps?.displayName : L10n.Account.guestTitle
         var roles: [String] = [caps?.isRegistered == true ? L10n.Profile.registered : L10n.Profile.notVerified]
         if caps?.isBusinessOwner == true { roles.append(L10n.Profile.businessOwner) }
@@ -275,8 +383,22 @@ final class ProfileHeaderCell: UITableViewCell {
         identifierLabel.text = roles.joined(separator: " · ")
         identifierLabel.textColor = caps?.isRegistered == true ? AppColors.good : AppColors.textSecondary
         avatarImageView.image = UIImage(systemName: caps?.isAdmin == true ? "checkmark.shield.fill" : caps?.isRegistered == true ? "person.fill.checkmark" : "person.fill")
-        sinceLabel.text = isDemo ? "⚠︎ " + L10n.Common.demoBadge : nil
-        sinceLabel.isHidden = !isDemo
+        sinceLabel.text = [caps?.contactHint, isDemo ? "⚠︎ " + L10n.Common.demoBadge : nil].compactMap { $0 }.joined(separator: " · ")
+        sinceLabel.isHidden = sinceLabel.text?.isEmpty ?? true
         accessibilityLabel = [nameLabel.text, identifierLabel.text, sinceLabel.text].compactMap { $0 }.joined(separator: ", ")
+        avatarView.isAccessibilityElement = caps?.isRegistered == true
+        avatarView.accessibilityLabel = L10n.Profile.photo
+        avatarView.accessibilityTraits = .button
+    }
+}
+
+extension ProfileViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
+        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+            guard let image = object as? UIImage else { return }
+            Task { @MainActor in self?.viewModel?.setProfilePhoto(image) }
+        }
     }
 }

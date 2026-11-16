@@ -25,7 +25,7 @@ extension VenueCategory {
 }
 
 extension RatingSummary {
-    /// "4.6 · 28 รีวิว" or "ยังไม่มีรีวิว" — never "0.0".
+    /// "4.6 · 28 reviews" or "No reviews yet" — never "0.0".
     var displayText: String {
         guard hasReviews, let average else { return L10n.Rating.noReviews }
         return L10n.Rating.summary(Self.format(average), reviewCount)
@@ -161,7 +161,7 @@ extension ClaimantRole {
 }
 
 extension VenueSummary {
-    /// "คาเฟ่ · 350 ม." — distance only when known.
+    /// "Café · 350 m" — distance only when known.
     var metaText: String {
         [category.title, distanceMeters.map(Formatters.distance)].compactMap { $0 }.joined(separator: " · ")
     }

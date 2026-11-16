@@ -1,345 +1,401 @@
 import Foundation
 
-/// All user-facing strings. Thai is the development language; keys are the Thai source text so the
+/// All user-facing strings. English is the development language; keys are the English source text so the
 /// String Catalog can add translations later.
 enum L10n {
     enum Common {
-        static var ok: String { String(localized: "ตกลง") }
-        static var cancel: String { String(localized: "ยกเลิก") }
-        static var close: String { String(localized: "ปิด") }
-        static var retry: String { String(localized: "ลองอีกครั้ง") }
-        static var save: String { String(localized: "บันทึก") }
-        static var done: String { String(localized: "เสร็จ") }
-        static var send: String { String(localized: "ส่ง") }
-        static var unnamedPlace: String { String(localized: "สถานที่ไม่มีชื่อ") }
-        static var openSettings: String { String(localized: "เปิดการตั้งค่า") }
-        static var somethingWentWrong: String { String(localized: "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง") }
-        static var directions: String { String(localized: "เส้นทาง") }
-        static var remove: String { String(localized: "ลบ") }
-        static var optional: String { String(localized: "ไม่บังคับ") }
-        static var loading: String { String(localized: "กำลังโหลด…") }
-        static var demoBadge: String { String(localized: "โหมดสาธิต") }
+        static var ok: String { String(localized: "OK") }
+        static var cancel: String { String(localized: "Cancel") }
+        static var close: String { String(localized: "Close") }
+        static var retry: String { String(localized: "Try again") }
+        static var save: String { String(localized: "Save") }
+        static var done: String { String(localized: "Done") }
+        static var send: String { String(localized: "Send") }
+        static var unnamedPlace: String { String(localized: "Unnamed place") }
+        static var openSettings: String { String(localized: "Open Settings") }
+        static var somethingWentWrong: String { String(localized: "Something went wrong. Please try again.") }
+        static var directions: String { String(localized: "Directions") }
+        static var remove: String { String(localized: "Remove") }
+        static var optional: String { String(localized: "Optional") }
+        static var loading: String { String(localized: "Loading…") }
+        static var demoBadge: String { String(localized: "Demo mode") }
     }
 
     enum Category {
-        static var all: String { String(localized: "ทั้งหมด") }
-        static var cafe: String { String(localized: "คาเฟ่") }
-        static var library: String { String(localized: "ห้องสมุด") }
+        static var all: String { String(localized: "All") }
+        static var cafe: String { String(localized: "Café") }
+        static var library: String { String(localized: "Library") }
         static var coworking: String { String(localized: "Co-working") }
         static var studySpace: String { String(localized: "Study Space") }
-        static var other: String { String(localized: "อื่น ๆ") }
+        static var other: String { String(localized: "Other") }
     }
 
     enum Rating {
-        static var noReviews: String { String(localized: "ยังไม่มีรีวิว") }
-        static func summary(_ average: String, _ count: Int) -> String { String(localized: "\(average) · \(count) รีวิว") }
-        static func accessibility(_ average: String, _ count: Int) -> String { String(localized: "คะแนนเฉลี่ย \(average) จาก 5 จาก \(count) รีวิว") }
-        static func reviewCount(_ count: Int) -> String { String(localized: "\(count) รีวิว") }
+        static var noReviews: String { String(localized: "No reviews yet") }
+        static func summary(_ average: String, _ count: Int) -> String { "\(average) · \(reviewCount(count))" }
+        static func accessibility(_ average: String, _ count: Int) -> String {
+            count == 1 ? String(localized: "Average rating \(average) out of 5 from 1 review")
+                       : String(localized: "Average rating \(average) out of 5 from \(count) reviews")
+        }
+        static func reviewCount(_ count: Int) -> String {
+            count == 1 ? String(localized: "1 review") : String(localized: "\(count) reviews")
+        }
         static func starLabel(_ star: Int) -> String {
             switch star {
-            case 1: String(localized: "1 ดาว · แย่")
-            case 2: String(localized: "2 ดาว · ต่ำกว่าที่คาด")
-            case 3: String(localized: "3 ดาว · พอใช้")
-            case 4: String(localized: "4 ดาว · ดี")
-            default: String(localized: "5 ดาว · ยอดเยี่ยม")
+            case 1: String(localized: "1 star · Poor")
+            case 2: String(localized: "2 stars · Below expectations")
+            case 3: String(localized: "3 stars · Okay")
+            case 4: String(localized: "4 stars · Good")
+            default: String(localized: "5 stars · Excellent")
             }
         }
     }
 
     enum Explore {
-        static var title: String { String(localized: "สำรวจ") }
-        static var searchPlaceholder: String { String(localized: "ค้นหาคาเฟ่ ห้องสมุด ที่อ่านหนังสือ…") }
-        static var filter: String { String(localized: "ตัวกรอง") }
-        static var viewList: String { String(localized: "รายการ") }
-        static var viewMap: String { String(localized: "แผนที่") }
-        static var searchThisArea: String { String(localized: "ค้นหาบริเวณนี้") }
-        static var locateMe: String { String(localized: "ตำแหน่งของฉัน") }
-        static var nearYou: String { String(localized: "ใกล้คุณ") }
-        static var defaultArea: String { String(localized: "สยาม กรุงเทพฯ · แตะเพื่อใช้ตำแหน่งของคุณ") }
-        static var locating: String { String(localized: "กำลังหาตำแหน่ง…") }
-        static var mapArea: String { String(localized: "บริเวณบนแผนที่") }
-        static var locationOff: String { String(localized: "ปิดตำแหน่งอยู่ · ค้นหาตามชื่อหรือแผนที่ได้") }
-        static var recommended: String { String(localized: "แนะนำในบริเวณนี้") }
-        static var recommendedSubtitle: String { String(localized: "จัดอันดับจากคะแนนรีวิว จำนวนรีวิว และระยะทาง") }
-        static var results: String { String(localized: "ผลการค้นหา") }
-        static func resultsCount(_ count: Int) -> String { String(localized: "\(count) แห่งบน Nanglen") }
-        static var searching: String { String(localized: "กำลังค้นหา…") }
-        static var emptyTitle: String { String(localized: "ยังไม่พบสถานที่บน Nanglen") }
-        static var emptyMessage: String { String(localized: "ลองคำค้นอื่น ขยายระยะทาง หรือแนะนำสถานที่ใหม่ให้ชุมชน") }
-        static var addPlace: String { String(localized: "เพิ่มสถานที่ใหม่") }
-        static var missingPlaceFooter: String { String(localized: "ไม่เจอที่ที่หา? แนะนำสถานที่ใหม่ ทีมงานจะตรวจสอบก่อนเผยแพร่") }
-        static var errorTitle: String { String(localized: "โหลดข้อมูลไม่สำเร็จ") }
-        static var offlineBanner: String { String(localized: "ออฟไลน์ · แสดงข้อมูลที่บันทึกไว้ อาจไม่เป็นปัจจุบัน") }
-        static func offlineSince(_ relative: String) -> String { String(localized: "ออฟไลน์ · ข้อมูลที่บันทึกไว้เมื่อ \(relative) อาจไม่เป็นปัจจุบัน") }
-        static var loadMore: String { String(localized: "โหลดเพิ่ม") }
-        static var locationDeniedTitle: String { String(localized: "ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง") }
-        static var locationDeniedMessage: String { String(localized: "เปิดสิทธิ์ตำแหน่งในการตั้งค่าเพื่อค้นหาสถานที่ใกล้คุณ หรือค้นหาตามชื่อได้เลย") }
+        static var title: String { String(localized: "Explore") }
+        static var searchPlaceholder: String { String(localized: "Search cafés, libraries, study spots…") }
+        static var filter: String { String(localized: "Filters") }
+        static var viewList: String { String(localized: "List") }
+        static var viewMap: String { String(localized: "Map") }
+        static var searchThisArea: String { String(localized: "Search this area") }
+        static var locateMe: String { String(localized: "My location") }
+        static var nearYou: String { String(localized: "Near you") }
+        static var defaultArea: String { String(localized: "Siam, Bangkok · Use my location") }
+        static var locating: String { String(localized: "Finding your location…") }
+        static var mapArea: String { String(localized: "Map area") }
+        static var locationOff: String { String(localized: "Location off · Search by name or map instead") }
+        static var recommended: String { String(localized: "Top picks nearby 🔥") }
+        static var recommendedSubtitle: String { String(localized: "Ranked by rating, reviews and distance") }
+        static var eyebrow: String { String(localized: "Find your chill spot ✨") }
+        static var noPhotosYet: String { String(localized: "No photos yet") }
+        static var newPlace: String { String(localized: "New") }
+        static var savedBadge: String { String(localized: "Saved") }
+        static func distanceAway(_ distance: String) -> String { String(localized: "\(distance) away") }
+        static var results: String { String(localized: "Search results") }
+        static func resultsCount(_ count: Int) -> String { String(localized: "\(count) places on Nanglen") }
+        static var searching: String { String(localized: "Searching…") }
+        static var emptyTitle: String { String(localized: "No places found on Nanglen yet") }
+        static var emptyMessage: String { String(localized: "Try another search, widen the distance, or suggest a new place to the community.") }
+        static var addPlace: String { String(localized: "Add a new place") }
+        static var missingPlaceFooter: String { String(localized: "Can't find it? Suggest a new place. Our team reviews it before it goes live.") }
+        static var errorTitle: String { String(localized: "Couldn't load data") }
+        static var offlineBanner: String { String(localized: "Offline · Showing saved data that may be out of date") }
+        static func offlineSince(_ relative: String) -> String { String(localized: "Offline · Data saved \(relative) may be out of date") }
+        static var loadMore: String { String(localized: "Load more") }
+        static var locationDeniedTitle: String { String(localized: "Location access not allowed") }
+        static var locationDeniedMessage: String { String(localized: "Turn on location access in Settings to find places near you, or search by name.") }
     }
 
     enum Filter {
-        static var title: String { String(localized: "ตัวกรอง") }
-        static var sort: String { String(localized: "เรียงตาม") }
-        static var sortRelevance: String { String(localized: "เหมาะสมที่สุด") }
-        static var sortDistance: String { String(localized: "ใกล้ที่สุด") }
-        static var sortRating: String { String(localized: "คะแนนสูง") }
-        static var distance: String { String(localized: "ระยะทาง") }
-        static var minimumRating: String { String(localized: "คะแนนขั้นต่ำ") }
-        static var any: String { String(localized: "ทั้งหมด") }
-        static var apply: String { String(localized: "ดูผลลัพธ์") }
-        static var reset: String { String(localized: "รีเซ็ต") }
-        static var footnote: String { String(localized: "คะแนนเฉลี่ยมาจากรีวิวที่ยืนยันการไปจริง การจัดอันดับคำนึงถึงจำนวนรีวิวด้วย สถานที่ที่จ่ายเงินไม่ได้รับอันดับพิเศษ") }
+        static var title: String { String(localized: "Filters") }
+        static var sort: String { String(localized: "Sort by") }
+        static var sortRelevance: String { String(localized: "Best match") }
+        static var sortDistance: String { String(localized: "Nearest") }
+        static var sortRating: String { String(localized: "Top rated") }
+        static var distance: String { String(localized: "Distance") }
+        static var minimumRating: String { String(localized: "Minimum rating") }
+        static var any: String { String(localized: "Any") }
+        static var apply: String { String(localized: "Show results") }
+        static var reset: String { String(localized: "Reset") }
+        static var footnote: String { String(localized: "Averages come from verified-visit reviews. Ranking also considers the number of reviews. Paid listings get no special ranking.") }
+        static var goodFor: String { String(localized: "Good for") }
+        static var goodForHint: String { String(localized: "Based on what visitors said. Pick up to 3.") }
+        static var reviewedOnly: String { String(localized: "Only places with reviews") }
+        static var tooManyTags: String { String(localized: "You can pick up to 3") }
+        static var clearAll: String { String(localized: "Clear all") }
+        static func ratingAtLeast(_ value: String) -> String { String(localized: "\(value)★ & up") }
+        static func within(_ distance: String) -> String { String(localized: "Within \(distance)") }
+        static var hasReviews: String { String(localized: "Has reviews") }
+        static func removeFilter(_ name: String) -> String { String(localized: "Remove filter \(name)") }
     }
 
     enum Detail {
-        static var writeReview: String { String(localized: "เขียนรีวิว") }
-        static var updateReview: String { String(localized: "อัปเดตรีวิว") }
-        static var save: String { String(localized: "บันทึกสถานที่") }
-        static var unsave: String { String(localized: "เลิกบันทึก") }
-        static var communityTags: String { String(localized: "ผู้มาเยือนบอกว่า") }
-        static var communityTagsNote: String { String(localized: "จากรีวิวของผู้ใช้ ไม่ใช่ข้อมูลยืนยันจากสถานที่") }
-        static var reviews: String { String(localized: "รีวิว") }
-        static var sortRelevant: String { String(localized: "เกี่ยวข้อง") }
-        static var sortRecent: String { String(localized: "ล่าสุด") }
-        static var noReviewsMessage: String { String(localized: "เป็นคนแรกที่รีวิวหลังจากไปถึงสถานที่จริง") }
-        static var verifiedVisit: String { String(localized: "ยืนยันการไปจริง") }
-        static var you: String { String(localized: "คุณ") }
-        static var info: String { String(localized: "ข้อมูลสถานที่") }
-        static var address: String { String(localized: "ที่อยู่") }
-        static var website: String { String(localized: "เว็บไซต์") }
-        static var phone: String { String(localized: "โทร") }
-        static var sourceCommunity: String { String(localized: "ข้อมูลจากผู้แนะนำสถานที่ ตรวจสอบโดยทีมงาน") }
-        static var sourceBusiness: String { String(localized: "ข้อมูลจากเจ้าของสถานที่ที่ยืนยันแล้ว") }
-        static var sourceCurated: String { String(localized: "ข้อมูลจากทีมงาน Nanglen") }
-        static var claim: String { String(localized: "เป็นเจ้าของที่นี่? ขอยืนยันความเป็นเจ้าของ") }
-        static var managedByYou: String { String(localized: "คุณเป็นผู้ดูแลสถานที่นี้") }
-        static var report: String { String(localized: "รายงานรีวิว") }
-        static var reportSent: String { String(localized: "ส่งรายงานแล้ว ทีมงานจะตรวจสอบ") }
-        static var temporarilyClosed: String { String(localized: "ปิดชั่วคราว") }
-        static var permanentlyClosed: String { String(localized: "ปิดถาวร") }
-        static var myReviewHidden: String { String(localized: "รีวิวของคุณถูกซ่อนโดยทีมงาน") }
-        static func myReviewSummary(_ rating: Int, _ relative: String) -> String { String(localized: "รีวิวของคุณ \(rating)★ · \(relative)") }
-        static var revisitHint: String { String(localized: "อัปเดตรีวิวได้หลังยืนยันการไปครั้งใหม่") }
-        static var photosPending: String { String(localized: "รูปภาพจะแสดงหลังผ่านการตรวจสอบ") }
+        static var writeReview: String { String(localized: "Write a review") }
+        static var updateReview: String { String(localized: "Update review") }
+        static var save: String { String(localized: "Save place") }
+        static var unsave: String { String(localized: "Remove from saved") }
+        static var communityTags: String { String(localized: "Visitors say") }
+        static var communityTagsNote: String { String(localized: "From user reviews, not confirmed by the venue") }
+        static var facilities: String { String(localized: "Facilities") }
+        static var facilitiesNote: String { String(localized: "Reported by visitors") }
+        static var view360: String { String(localized: "360°") }
+        static var lookAround: String { String(localized: "Street view 360°") }
+        static var location: String { String(localized: "Location") }
+        static func photoPosition(_ index: Int, _ total: Int) -> String { String(localized: "Photo \(index) of \(total)") }
+        static var panoramaHint: String { String(localized: "Drag to look around · Pinch to zoom") }
+        static var panoramaFailed: String { String(localized: "Couldn't load the 360° view. Check your connection and try again.") }
+        static var panoramaMotionOn: String { String(localized: "Move your phone to look around") }
+        static var panoramaMotion: String { String(localized: "Look around by moving your phone") }
+        static var reviews: String { String(localized: "Reviews") }
+        static var sortRelevant: String { String(localized: "Relevant") }
+        static var sortRecent: String { String(localized: "Recent") }
+        static var noReviewsMessage: String { String(localized: "Be the first to review after visiting in person") }
+        static var verifiedVisit: String { String(localized: "Verified visit") }
+        static var you: String { String(localized: "You") }
+        static var info: String { String(localized: "Place info") }
+        static var address: String { String(localized: "Address") }
+        static var website: String { String(localized: "Website") }
+        static var phone: String { String(localized: "Phone") }
+        static var sourceCommunity: String { String(localized: "Info from the person who suggested this place, checked by our team") }
+        static var sourceBusiness: String { String(localized: "Info from the verified owner") }
+        static var sourceCurated: String { String(localized: "Info from the Nanglen team") }
+        static var claim: String { String(localized: "Own this place? Claim ownership") }
+        static var managedByYou: String { String(localized: "You manage this place") }
+        static var report: String { String(localized: "Report review") }
+        static var reportSent: String { String(localized: "Report sent. Our team will take a look.") }
+        static var temporarilyClosed: String { String(localized: "Temporarily closed") }
+        static var permanentlyClosed: String { String(localized: "Permanently closed") }
+        static var myReviewHidden: String { String(localized: "Your review was hidden by our team") }
+        static func myReviewSummary(_ rating: Int, _ relative: String) -> String { String(localized: "Your review \(rating)★ · \(relative)") }
+        static var revisitHint: String { String(localized: "You can update it after verifying a new visit") }
+        static var photosPending: String { String(localized: "Photos appear after they're reviewed") }
+        static var flagSpam: String { String(localized: "Spam or advertising") }
+        static var flagOffensive: String { String(localized: "Offensive or hateful") }
+        static var flagNotARealVisit: String { String(localized: "Probably not a real visit") }
+        static var flagWrongVenue: String { String(localized: "Review is for a different place") }
+        static var flagPrivacy: String { String(localized: "Privacy violation") }
     }
 
     enum Review {
-        static var title: String { String(localized: "เขียนรีวิว") }
-        static var explain: String { String(localized: "เพื่อให้รีวิวบน Nanglen น่าเชื่อถือ เราจะยืนยันว่าคุณอยู่ที่สถานที่นี้") }
-        static var checking: String { String(localized: "กำลังตรวจสอบตำแหน่ง…") }
-        static var askingPermission: String { String(localized: "ขออนุญาตใช้ตำแหน่งขณะใช้แอป") }
-        static var verifying: String { String(localized: "กำลังยืนยันกับเซิร์ฟเวอร์…") }
-        static var verified: String { String(localized: "ยืนยันการไปจริงแล้ว") }
-        static func tooFar(_ distance: String) -> String { String(localized: "คุณอยู่ห่างจากสถานที่ประมาณ \(distance) ต้องอยู่ภายในรัศมีที่กำหนด") }
-        static var tooFarGeneric: String { String(localized: "คุณอยู่ไกลจากสถานที่เกินไป") }
-        static var inaccurate: String { String(localized: "ตำแหน่งยังไม่แม่นยำพอ ลองขยับไปใกล้หน้าต่างหรือที่โล่งแล้วลองใหม่") }
-        static var stale: String { String(localized: "ตำแหน่งที่ได้ไม่เป็นปัจจุบัน ลองใหม่อีกครั้ง") }
-        static var unavailable: String { String(localized: "หาตำแหน่งไม่ได้ในตอนนี้ ลองใหม่อีกครั้ง") }
-        static var permissionDenied: String { String(localized: "ต้องเปิดสิทธิ์ตำแหน่งเพื่อยืนยันการไปจริง") }
-        static var registrationRequired: String { String(localized: "ต้องยืนยันเบอร์โทรก่อนเขียนรีวิว") }
-        static var spoofDisclaimer: String { String(localized: "การยืนยันใช้ตำแหน่ง GPS ของอุปกรณ์ เราไม่เก็บประวัติตำแหน่งของคุณ") }
-        static var rating: String { String(localized: "ให้คะแนนโดยรวม") }
-        static var ratingRequired: String { String(localized: "เลือกคะแนน 1–5 ดาว") }
-        static var purpose: String { String(localized: "มาทำอะไร?") }
-        static var tags: String { String(localized: "อะไรโดดเด่น? (เลือกได้ 3)") }
-        static var comment: String { String(localized: "ความคิดเห็นสั้น ๆ") }
-        static var commentPlaceholder: String { String(localized: "อะไรที่คนอื่นควรรู้ก่อนมา?") }
-        static var photos: String { String(localized: "รูปภาพ (สูงสุด 3)") }
-        static var addPhoto: String { String(localized: "เพิ่มรูป") }
-        static var submit: String { String(localized: "เผยแพร่รีวิว") }
-        static var submitting: String { String(localized: "กำลังเผยแพร่…") }
-        static var published: String { String(localized: "เผยแพร่รีวิวแล้ว ขอบคุณ!") }
-        static var updated: String { String(localized: "อัปเดตรีวิวแล้ว") }
-        static func photosFailed(_ count: Int) -> String { String(localized: "อัปโหลดรูปไม่สำเร็จ \(count) รูป รีวิวถูกเผยแพร่แล้ว") }
-        static var photosPending: String { String(localized: "รูปภาพจะแสดงหลังผ่านการตรวจสอบ") }
-        static var draftSaved: String { String(localized: "บันทึกฉบับร่างไว้ในเครื่องแล้ว ยังไม่ได้เผยแพร่") }
-        static var draftRestored: String { String(localized: "นำฉบับร่างที่ยังไม่ส่งกลับมาแล้ว") }
-        static var reverify: String { String(localized: "การยืนยันหมดอายุหรือถูกใช้ไปแล้ว ยืนยันตำแหน่งใหม่ก่อนเผยแพร่") }
+        static var title: String { String(localized: "Write a review") }
+        static var explain: String { String(localized: "To keep Nanglen reviews trustworthy, we check that you're at this place.") }
+        static var checking: String { String(localized: "Checking your location…") }
+        static var askingPermission: String { String(localized: "Asking for location access while using the app") }
+        static var verifying: String { String(localized: "Verifying with the server…") }
+        static var verified: String { String(localized: "Visit verified") }
+        static func tooFar(_ distance: String) -> String { String(localized: "You're about \(distance) from this place. You need to be within the allowed radius.") }
+        static var tooFarGeneric: String { String(localized: "You're too far from this place") }
+        static var inaccurate: String { String(localized: "Your location isn't accurate enough yet. Move near a window or into the open and try again.") }
+        static var stale: String { String(localized: "Your location is out of date. Please try again.") }
+        static var unavailable: String { String(localized: "Can't get your location right now. Please try again.") }
+        static var permissionDenied: String { String(localized: "Location access is needed to verify your visit") }
+        static var registrationRequired: String { String(localized: "Verify your email before writing a review") }
+        static var spoofDisclaimer: String { String(localized: "Verification uses your device's GPS. We don't store your location history.") }
+        static var rating: String { String(localized: "Overall rating") }
+        static var ratingRequired: String { String(localized: "Choose a rating from 1 to 5 stars") }
+        static var purpose: String { String(localized: "What did you come for?") }
+        static var tags: String { String(localized: "What stood out? (pick up to 3)") }
+        static var comment: String { String(localized: "Short comment") }
+        static var commentPlaceholder: String { String(localized: "What should others know before coming?") }
+        static var photos: String { String(localized: "Photos (up to 3)") }
+        static var addPhoto: String { String(localized: "Add photo") }
+        static var submit: String { String(localized: "Publish review") }
+        static var submitting: String { String(localized: "Publishing…") }
+        static var published: String { String(localized: "Review published. Thank you!") }
+        static var updated: String { String(localized: "Review updated") }
+        static func photosFailed(_ count: Int) -> String { String(localized: "\(count) photos failed to upload. Your review was published.") }
+        static var photosPending: String { String(localized: "Photos appear after they're reviewed") }
+        static var draftSaved: String { String(localized: "Draft saved on this device. Not published yet.") }
+        static var draftRestored: String { String(localized: "Restored your unsent draft") }
+        static var reverify: String { String(localized: "Your verification expired or was already used. Verify your location again before publishing.") }
         static func characters(_ count: Int, _ max: Int) -> String { String(localized: "\(count)/\(max)") }
-        static var tooManyTags: String { String(localized: "เลือกได้สูงสุด 3 แท็ก") }
-        static var verifyAgain: String { String(localized: "ยืนยันตำแหน่งอีกครั้ง") }
+        static var tooManyTags: String { String(localized: "You can pick up to 3 tags") }
+        static var verifyAgain: String { String(localized: "Verify location again") }
     }
 
     enum Purpose {
-        static var study: String { String(localized: "อ่านหนังสือ") }
-        static var work: String { String(localized: "ทำงาน") }
-        static var meeting: String { String(localized: "ประชุม") }
-        static var relax: String { String(localized: "พักผ่อน") }
-        static var other: String { String(localized: "อื่น ๆ") }
+        static var study: String { String(localized: "Study") }
+        static var work: String { String(localized: "Work") }
+        static var meeting: String { String(localized: "Meeting") }
+        static var relax: String { String(localized: "Relax") }
+        static var other: String { String(localized: "Other") }
     }
 
     enum Account {
-        static var guestTitle: String { String(localized: "ผู้เยี่ยมชม") }
-        static var guestMessage: String { String(localized: "ใช้งานได้ทันทีโดยไม่ต้องสมัคร รายการที่บันทึกไว้ผูกกับอุปกรณ์นี้ หากลบแอปหรือเปลี่ยนเครื่องอาจหายได้") }
-        static var linkPhone: String { String(localized: "ยืนยันเบอร์โทรศัพท์") }
-        static var linkPhoneBenefit: String { String(localized: "ยืนยันเบอร์เพื่อเขียนรีวิว แนะนำสถานที่ และเก็บรายการที่บันทึกไว้ข้ามอุปกรณ์ ข้อมูลเดิมของคุณจะยังอยู่ครบ") }
-        static var phonePlaceholder: String { String(localized: "เบอร์โทรศัพท์ เช่น 081 234 5678") }
-        static var sendCode: String { String(localized: "ส่งรหัส OTP") }
-        static var codePlaceholder: String { String(localized: "รหัส 6 หลัก") }
-        static var verifyCode: String { String(localized: "ยืนยันรหัส") }
-        static func codeSent(_ masked: String) -> String { String(localized: "ส่งรหัสไปที่ \(masked) แล้ว") }
-        static var linked: String { String(localized: "ยืนยันเบอร์โทรเรียบร้อย คุณเป็นสมาชิกแล้ว") }
-        static func demoOTPHint(_ code: String) -> String { String(localized: "โหมดสาธิต: ไม่มีการส่ง SMS จริง ใช้รหัส \(code)") }
-        static var invalidPhone: String { String(localized: "รูปแบบเบอร์โทรไม่ถูกต้อง") }
-        static var registeredRequiredTitle: String { String(localized: "ต้องเป็นสมาชิกก่อน") }
-        static var registeredRequiredReview: String { String(localized: "ผู้เยี่ยมชมอ่านรีวิวได้ แต่การเขียนรีวิวต้องยืนยันเบอร์โทรก่อน เพื่อให้รีวิวน่าเชื่อถือ") }
-        static var registeredRequiredSubmit: String { String(localized: "การแนะนำสถานที่ใหม่ต้องยืนยันเบอร์โทรก่อน") }
-        static var registeredRequiredClaim: String { String(localized: "การขอยืนยันความเป็นเจ้าของต้องยืนยันเบอร์โทรก่อน") }
+        static var guestTitle: String { String(localized: "Guest") }
+        static var guestMessage: String { String(localized: "Use the app right away without signing up. Saved places are tied to this device and may be lost if you delete the app or switch devices.") }
+        static var verifyEmail: String { String(localized: "Verify email") }
+        static var verifyEmailBenefit: String { String(localized: "Verify your email to write reviews, suggest places and keep your saved places across devices. Everything you already saved stays. It's free, and we'll send a 6-digit code.") }
+        static var verifyEmailShort: String { String(localized: "Free · Write reviews and keep your saved places") }
+        static var emailPlaceholder: String { String(localized: "you@example.com") }
+        static var sendCode: String { String(localized: "Send code") }
+        static var resendCode: String { String(localized: "Send a new code") }
+        static var codePlaceholder: String { String(localized: "6-digit code") }
+        static var verifyCode: String { String(localized: "Verify code") }
+        static var useDifferentEmail: String { String(localized: "Use a different email") }
+        static func codeSent(_ masked: String) -> String { String(localized: "Code sent to \(masked). Check your inbox and spam folder.") }
+        static var linked: String { String(localized: "Email verified. You're now a member.") }
+        static var signedIn: String { String(localized: "Signed in to your account") }
+        static var accountExistsTitle: String { String(localized: "You already have an account") }
+        static func accountExistsMessage(_ email: String) -> String { String(localized: "\(email) is already a Nanglen account. Sign in to it? Places you saved as a guest on this phone won't be moved over.") }
+        static var signInInstead: String { String(localized: "Sign in") }
+        static var emailPrivacy: String { String(localized: "We only use your email to sign you in. It's never shown on reviews.") }
+        static func demoOTPHint(_ code: String) -> String { String(localized: "Demo mode: no email is sent. Use code \(code)") }
+        static var invalidEmail: String { String(localized: "Enter a valid email address") }
+        static var registeredRequiredTitle: String { String(localized: "Members only") }
+        static var registeredRequiredReview: String { String(localized: "Guests can read reviews, but writing one requires a verified email so reviews stay trustworthy.") }
+        static var registeredRequiredSubmit: String { String(localized: "Verify your email to suggest a new place") }
+        static var registeredRequiredClaim: String { String(localized: "Verify your email to claim ownership") }
     }
 
     enum Submission {
-        static var title: String { String(localized: "แนะนำสถานที่") }
-        static var intro: String { String(localized: "สถานที่ใหม่จะแสดงบน Nanglen หลังทีมงานตรวจสอบและอนุมัติแล้วเท่านั้น") }
-        static var searchMaps: String { String(localized: "ค้นหาใน Apple Maps") }
-        static var searchMapsPlaceholder: String { String(localized: "ชื่อสถานที่ใน Apple Maps") }
-        static var pinHint: String { String(localized: "เลื่อนแผนที่ให้หมุดอยู่ตรงทางเข้าสถานที่") }
-        static var notOnNanglen: String { String(localized: "จาก Apple Maps · ยังไม่อยู่ใน Nanglen") }
-        static var alreadyOnNanglen: String { String(localized: "มีอยู่ใน Nanglen แล้ว") }
-        static var name: String { String(localized: "ชื่อสถานที่ *") }
-        static var category: String { String(localized: "ประเภท *") }
-        static var address: String { String(localized: "ที่อยู่ *") }
-        static var description: String { String(localized: "ทำไมถึงแนะนำ (ไม่บังคับ)") }
-        static var website: String { String(localized: "เว็บไซต์หรือโซเชียล (https://…)") }
-        static var phone: String { String(localized: "เบอร์ติดต่อ (ไม่บังคับ)") }
-        static var note: String { String(localized: "ข้อความถึงทีมงาน (ไม่บังคับ)") }
-        static var photos: String { String(localized: "รูปภาพ (สูงสุด 5)") }
-        static var submit: String { String(localized: "ส่งให้ทีมงานตรวจสอบ") }
-        static var resubmit: String { String(localized: "ส่งตรวจสอบอีกครั้ง") }
-        static var submitted: String { String(localized: "ส่งแล้ว · รอทีมงานตรวจสอบ") }
-        static var submittedMessage: String { String(localized: "ติดตามสถานะได้ที่ โปรไฟล์ › สถานที่ที่ฉันแนะนำ") }
-        static var alreadyListedTitle: String { String(localized: "สถานที่นี้มีอยู่แล้ว") }
-        static var alreadyListedMessage: String { String(localized: "สถานที่นี้อยู่ใน Nanglen แล้ว คุณสามารถเปิดดูและเขียนรีวิวได้เลย") }
-        static var openVenue: String { String(localized: "เปิดดูสถานที่") }
-        static func possibleDuplicates(_ names: String) -> String { String(localized: "อาจซ้ำกับ: \(names) ทีมงานจะตรวจสอบให้") }
-        static var nameRequired: String { String(localized: "กรอกชื่อสถานที่") }
-        static var categoryRequired: String { String(localized: "เลือกประเภท") }
-        static var locationRequired: String { String(localized: "ปักหมุดตำแหน่งบนแผนที่") }
-        static var invalidWebsite: String { String(localized: "ลิงก์ต้องขึ้นต้นด้วย https://") }
-        static var textTooLong: String { String(localized: "ข้อความยาวเกินไป") }
-        static var useThisPlace: String { String(localized: "ใช้สถานที่นี้") }
-        static var mine: String { String(localized: "สถานที่ที่ฉันแนะนำ") }
-        static var mineEmpty: String { String(localized: "ยังไม่มีสถานที่ที่แนะนำ") }
-        static var withdraw: String { String(localized: "ถอนคำขอ") }
-        static var editAndResubmit: String { String(localized: "แก้ไขและส่งใหม่") }
-        static var adminFeedback: String { String(localized: "ความเห็นจากทีมงาน") }
+        static var title: String { String(localized: "Suggest a place") }
+        static var intro: String { String(localized: "New places appear on Nanglen only after our team reviews and approves them.") }
+        static var searchMaps: String { String(localized: "Search Apple Maps") }
+        static var searchMapsPlaceholder: String { String(localized: "Place name in Apple Maps") }
+        static var pinHint: String { String(localized: "Move the map so the pin sits on the entrance") }
+        static var notOnNanglen: String { String(localized: "From Apple Maps · Not on Nanglen yet") }
+        static var alreadyOnNanglen: String { String(localized: "Already on Nanglen") }
+        static var name: String { String(localized: "Place name *") }
+        static var category: String { String(localized: "Category *") }
+        static var address: String { String(localized: "Address *") }
+        static var description: String { String(localized: "Why do you recommend it? (optional)") }
+        static var website: String { String(localized: "Website or social (https://…)") }
+        static var phone: String { String(localized: "Contact phone (optional)") }
+        static var note: String { String(localized: "Note to the team (optional)") }
+        static var photos: String { String(localized: "Photos (up to 5)") }
+        static var submit: String { String(localized: "Submit for review") }
+        static var resubmit: String { String(localized: "Resubmit for review") }
+        static var submitted: String { String(localized: "Submitted · Waiting for review") }
+        static var submittedMessage: String { String(localized: "Track the status in Profile › My suggested places") }
+        static var alreadyListedTitle: String { String(localized: "This place already exists") }
+        static var alreadyListedMessage: String { String(localized: "This place is already on Nanglen. You can open it and write a review.") }
+        static var openVenue: String { String(localized: "Open place") }
+        static func possibleDuplicates(_ names: String) -> String { String(localized: "Possible duplicate of: \(names). Our team will check.") }
+        static var nameRequired: String { String(localized: "Enter a place name") }
+        static var categoryRequired: String { String(localized: "Choose a category") }
+        static var locationRequired: String { String(localized: "Pin the location on the map") }
+        static var invalidWebsite: String { String(localized: "Links must start with https://") }
+        static var textTooLong: String { String(localized: "Text is too long") }
+        static var useThisPlace: String { String(localized: "Use this place") }
+        static var mine: String { String(localized: "My suggested places") }
+        static var mineEmpty: String { String(localized: "You haven't suggested any places yet") }
+        static var withdraw: String { String(localized: "Withdraw") }
+        static var editAndResubmit: String { String(localized: "Edit and resubmit") }
+        static var adminFeedback: String { String(localized: "Feedback from our team") }
     }
 
     enum SubmissionStatusText {
-        static var draft: String { String(localized: "ฉบับร่าง") }
-        static var pending: String { String(localized: "รอทีมงานตรวจสอบ") }
-        static var needsChanges: String { String(localized: "ต้องแก้ไข") }
-        static var approved: String { String(localized: "อนุมัติแล้ว") }
-        static var rejected: String { String(localized: "ไม่อนุมัติ") }
-        static var duplicate: String { String(localized: "ซ้ำกับที่มีอยู่") }
-        static var withdrawn: String { String(localized: "ถอนแล้ว") }
+        static var draft: String { String(localized: "Draft") }
+        static var pending: String { String(localized: "Waiting for review") }
+        static var needsChanges: String { String(localized: "Needs changes") }
+        static var approved: String { String(localized: "Approved") }
+        static var rejected: String { String(localized: "Rejected") }
+        static var duplicate: String { String(localized: "Duplicate") }
+        static var withdrawn: String { String(localized: "Withdrawn") }
     }
 
     enum Claim {
-        static var title: String { String(localized: "ยืนยันความเป็นเจ้าของ") }
-        static var intro: String { String(localized: "ทีมงานจะตรวจสอบหลักฐานก่อนให้สิทธิ์ดูแลสถานที่ เจ้าของไม่สามารถแก้ไขหรือลบรีวิวของผู้ใช้ได้") }
-        static var businessName: String { String(localized: "ชื่อธุรกิจ *") }
-        static var role: String { String(localized: "บทบาท") }
-        static var owner: String { String(localized: "เจ้าของ") }
-        static var manager: String { String(localized: "ผู้จัดการ") }
-        static var editor: String { String(localized: "ผู้ดูแลข้อมูล") }
-        static var contact: String { String(localized: "ช่องทางติดต่อกลับ (ไม่บังคับ)") }
-        static var evidence: String { String(localized: "หลักฐาน เช่น เลขทะเบียนพาณิชย์ หรือลิงก์เพจทางการ") }
-        static var submit: String { String(localized: "ส่งคำขอ") }
-        static var submitted: String { String(localized: "ส่งคำขอแล้ว · รอทีมงานตรวจสอบ") }
-        static var myClaims: String { String(localized: "คำขอเป็นเจ้าของสถานที่") }
-        static var pending: String { String(localized: "รอตรวจสอบ") }
-        static var approved: String { String(localized: "อนุมัติแล้ว") }
-        static var rejected: String { String(localized: "ไม่อนุมัติ") }
-        static var withdrawn: String { String(localized: "ถอนแล้ว") }
+        static var title: String { String(localized: "Verify ownership") }
+        static var intro: String { String(localized: "Our team checks your evidence before granting management access. Owners can't edit or delete user reviews.") }
+        static var businessName: String { String(localized: "Business name *") }
+        static var role: String { String(localized: "Role") }
+        static var owner: String { String(localized: "Owner") }
+        static var manager: String { String(localized: "Manager") }
+        static var editor: String { String(localized: "Editor") }
+        static var contact: String { String(localized: "Contact details (optional)") }
+        static var evidence: String { String(localized: "Evidence, e.g. business registration number or official page link") }
+        static var submit: String { String(localized: "Send request") }
+        static var submitted: String { String(localized: "Request sent · Waiting for review") }
+        static var myClaims: String { String(localized: "Ownership requests") }
+        static var pending: String { String(localized: "Pending review") }
+        static var approved: String { String(localized: "Approved") }
+        static var rejected: String { String(localized: "Rejected") }
+        static var withdrawn: String { String(localized: "Withdrawn") }
     }
 
     enum Admin {
-        static var title: String { String(localized: "คิวตรวจสอบ") }
-        static var submissions: String { String(localized: "สถานที่ใหม่") }
-        static var claims: String { String(localized: "คำขอเจ้าของ") }
-        static var flagged: String { String(localized: "รีวิวที่ถูกรายงาน") }
-        static var empty: String { String(localized: "ไม่มีรายการรอตรวจสอบ") }
-        static var approve: String { String(localized: "อนุมัติ") }
-        static var reject: String { String(localized: "ไม่อนุมัติ") }
-        static var requestChanges: String { String(localized: "ขอให้แก้ไข") }
-        static var markDuplicate: String { String(localized: "ซ้ำกับสถานที่นี้") }
-        static var duplicates: String { String(localized: "สถานที่ใกล้เคียงที่อาจซ้ำ") }
-        static var noDuplicates: String { String(localized: "ไม่พบสถานที่ใกล้เคียงที่อาจซ้ำ") }
-        static var submitter: String { String(localized: "ผู้แนะนำ") }
-        static func submitterStats(_ name: String, _ approved: Int, _ total: Int) -> String { String(localized: "\(name) · อนุมัติ \(approved) จาก \(total) รายการ") }
-        static var reasonTitle: String { String(localized: "เหตุผล (ผู้ส่งจะเห็นข้อความนี้)") }
-        static var notePlaceholder: String { String(localized: "หมายเหตุ (ไม่บังคับ)") }
-        static var likelyDuplicate: String { String(localized: "พบสถานที่ที่น่าจะซ้ำในระยะ 50 ม. อนุมัติต่อหรือไม่?") }
-        static var approveAnyway: String { String(localized: "อนุมัติต่อ") }
-        static var hide: String { String(localized: "ซ่อนรีวิว") }
-        static var removeReview: String { String(localized: "ลบรีวิว") }
-        static var dismiss: String { String(localized: "ยกฟ้อง (คงไว้)") }
-        static var done: String { String(localized: "บันทึกการตัดสินแล้ว") }
-        static var history: String { String(localized: "ประวัติการตรวจสอบ") }
-        static func photosCount(_ count: Int) -> String { String(localized: "รูปภาพ \(count) รูป") }
-        static func dupCount(_ count: Int) -> String { String(localized: "อาจซ้ำ \(count)") }
-        static func flags(_ count: Int, _ reasons: String) -> String { String(localized: "\(count) รายงาน · \(reasons)") }
+        static var title: String { String(localized: "Review queue") }
+        static var submissions: String { String(localized: "New places") }
+        static var claims: String { String(localized: "Ownership claims") }
+        static var flagged: String { String(localized: "Reported reviews") }
+        static var empty: String { String(localized: "Nothing waiting for review") }
+        static var approve: String { String(localized: "Approve") }
+        static var reject: String { String(localized: "Reject") }
+        static var requestChanges: String { String(localized: "Request changes") }
+        static var markDuplicate: String { String(localized: "Duplicate of this place") }
+        static var duplicates: String { String(localized: "Nearby places that may be duplicates") }
+        static var noDuplicates: String { String(localized: "No nearby duplicates found") }
+        static var submitter: String { String(localized: "Submitted by") }
+        static func submitterStats(_ name: String, _ approved: Int, _ total: Int) -> String { String(localized: "\(name) · \(approved) of \(total) approved") }
+        static var reasonTitle: String { String(localized: "Reason (the submitter will see this)") }
+        static var notePlaceholder: String { String(localized: "Note (optional)") }
+        static var likelyDuplicate: String { String(localized: "A likely duplicate exists within 50 m. Approve anyway?") }
+        static var approveAnyway: String { String(localized: "Approve anyway") }
+        static var hide: String { String(localized: "Hide review") }
+        static var removeReview: String { String(localized: "Remove review") }
+        static var dismiss: String { String(localized: "Dismiss (keep review)") }
+        static var done: String { String(localized: "Decision saved") }
+        static var history: String { String(localized: "Review history") }
+        static func photosCount(_ count: Int) -> String { String(localized: "\(count) photos") }
+        static func dupCount(_ count: Int) -> String { String(localized: "\(count) possible duplicates") }
+        static func flags(_ count: Int, _ reasons: String) -> String { String(localized: "\(count) reports · \(reasons)") }
     }
 
     enum Saved {
-        static var title: String { String(localized: "บันทึกไว้") }
-        static var emptyTitle: String { String(localized: "ยังไม่มีสถานที่ที่บันทึกไว้") }
-        static var emptyMessage: String { String(localized: "แตะ ♡ ในหน้าสถานที่เพื่อเก็บไว้ดูภายหลัง") }
-        static var guestNote: String { String(localized: "บันทึกในฐานะผู้เยี่ยมชม · ยืนยันเบอร์โทรเพื่อเก็บไว้ข้ามอุปกรณ์") }
-        static var offline: String { String(localized: "ออฟไลน์ · แสดงรายการที่บันทึกไว้ในเครื่อง") }
+        static var title: String { String(localized: "Saved") }
+        static var emptyTitle: String { String(localized: "No saved places yet") }
+        static var emptyMessage: String { String(localized: "Tap ♡ on a place to keep it for later") }
+        static var guestNote: String { String(localized: "Saved as a guest · Verify your phone to keep them across devices") }
+        static var offline: String { String(localized: "Offline · Showing places saved on this device") }
     }
 
     enum Profile {
-        static var title: String { String(localized: "โปรไฟล์") }
-        static var registered: String { String(localized: "สมาชิก · ยืนยันเบอร์แล้ว") }
-        static var notVerified: String { String(localized: "ยังไม่ได้ยืนยันเบอร์โทร") }
-        static var admin: String { String(localized: "ผู้ดูแลระบบ") }
-        static var businessOwner: String { String(localized: "เจ้าของธุรกิจ") }
-        static var contributions: String { String(localized: "การมีส่วนร่วม") }
-        static var savedCount: String { String(localized: "สถานที่ที่บันทึกไว้") }
-        static var reviewsCount: String { String(localized: "รีวิวของฉัน") }
-        static var addPlace: String { String(localized: "แนะนำสถานที่ใหม่") }
-        static var mySubmissions: String { String(localized: "สถานที่ที่ฉันแนะนำ") }
-        static var myBusinesses: String { String(localized: "ธุรกิจที่ฉันดูแล") }
-        static var moderation: String { String(localized: "คิวตรวจสอบของทีมงาน") }
-        static var editName: String { String(localized: "เปลี่ยนชื่อที่แสดง") }
-        static var settings: String { String(localized: "การตั้งค่า") }
-        static var location: String { String(localized: "สิทธิ์ตำแหน่ง") }
-        static var locationOn: String { String(localized: "อนุญาตขณะใช้แอป") }
-        static var locationOff: String { String(localized: "ไม่อนุญาต") }
-        static var locationNotAsked: String { String(localized: "ยังไม่ได้ขอ") }
-        static var clearCache: String { String(localized: "ล้างข้อมูลแคช") }
-        static var clearCacheConfirm: String { String(localized: "ล้างข้อมูลสถานที่ที่บันทึกไว้ในเครื่องและฉบับร่าง ข้อมูลบนเซิร์ฟเวอร์ไม่ถูกลบ") }
-        static var cacheCleared: String { String(localized: "ล้างแคชแล้ว") }
-        static var backend: String { String(localized: "เซิร์ฟเวอร์") }
-        static var demoBackend: String { String(localized: "โหมดสาธิต (ข้อมูลในเครื่อง)") }
-        static var demoExplain: String { String(localized: "ยังไม่ได้ตั้งค่า Supabase แอปจึงใช้เซิร์ฟเวอร์จำลองในเครื่อง ข้อมูลไม่ถูกแชร์กับผู้ใช้อื่น") }
-        static func demoAdminHint(_ phone: String) -> String { String(localized: "โหมดสาธิต: ยืนยันเบอร์ \(phone) เพื่อทดลองสิทธิ์ผู้ดูแล") }
-        static var signOut: String { String(localized: "ออกจากระบบ") }
-        static var signOutConfirm: String { String(localized: "ออกจากระบบแล้วจะกลับเป็นผู้เยี่ยมชมใหม่ ข้อมูลของบัญชีจะยังอยู่บนเซิร์ฟเวอร์และกลับมาได้เมื่อยืนยันเบอร์เดิม") }
-        static var version: String { String(localized: "เวอร์ชัน") }
-        static var privacy: String { String(localized: "เราใช้ตำแหน่งเฉพาะตอนค้นหาและตอนยืนยันการไปจริง ไม่เก็บประวัติการเดินทาง") }
+        static var title: String { String(localized: "Profile") }
+        static var registered: String { String(localized: "Member · Email verified") }
+        static var notVerified: String { String(localized: "Email not verified") }
+        static var admin: String { String(localized: "Administrator") }
+        static var businessOwner: String { String(localized: "Business owner") }
+        static var contributions: String { String(localized: "Contributions") }
+        static var savedCount: String { String(localized: "Saved places") }
+        static var reviewsCount: String { String(localized: "My reviews") }
+        static var addPlace: String { String(localized: "Suggest a new place") }
+        static var mySubmissions: String { String(localized: "My suggested places") }
+        static var myBusinesses: String { String(localized: "Businesses I manage") }
+        static var moderation: String { String(localized: "Team review queue") }
+        static var editName: String { String(localized: "Change display name") }
+        static var photo: String { String(localized: "Profile photo") }
+        static var photoAdd: String { String(localized: "Add photo") }
+        static var photoChange: String { String(localized: "Change") }
+        static var photoChoose: String { String(localized: "Choose from library") }
+        static var photoRemove: String { String(localized: "Remove photo") }
+        static var photoUploading: String { String(localized: "Uploading…") }
+        static var photoUpdated: String { String(localized: "Profile photo updated") }
+        static var photoRemoved: String { String(localized: "Profile photo removed") }
+        static var photoUnreadable: String { String(localized: "Couldn't use this photo. Please choose another.") }
+        static var settings: String { String(localized: "Settings") }
+        static var location: String { String(localized: "Location access") }
+        static var locationOn: String { String(localized: "While using the app") }
+        static var locationOff: String { String(localized: "Not allowed") }
+        static var locationNotAsked: String { String(localized: "Not asked yet") }
+        static var clearCache: String { String(localized: "Clear cache") }
+        static var clearCacheConfirm: String { String(localized: "Clears places and drafts stored on this device. Nothing on the server is deleted.") }
+        static var cacheCleared: String { String(localized: "Cache cleared") }
+        static var backend: String { String(localized: "Server") }
+        static var demoBackend: String { String(localized: "Demo mode (local data)") }
+        static var demoExplain: String { String(localized: "Supabase isn't configured, so the app uses a local mock server. Data isn't shared with other users.") }
+        static func demoAdminHint(_ email: String) -> String { String(localized: "Demo (debug builds): verify \(email) to try admin access") }
+        static var deleteAccount: String { String(localized: "Delete account") }
+        static var deleteAccountConfirm: String { String(localized: "This permanently deletes your account, reviews, saved places, suggestions and uploaded photos. Approved places stay on Nanglen. This can't be undone.") }
+        static var accountDeleted: String { String(localized: "Your account was deleted") }
+        static var renameRules: String { String(localized: "2–40 characters. Names like \"Admin\" or \"Nanglen\" are reserved.") }
+        static var signOut: String { String(localized: "Sign out") }
+        static var signOutConfirm: String { String(localized: "Signing out makes you a new guest. Your account stays on the server; sign in again with the same email to get it back.") }
+        static var version: String { String(localized: "Version") }
+        static var privacy: String { String(localized: "We use your location only when searching and verifying a visit. We don't store your travel history.") }
     }
 
     enum Errors {
         static func message(for error: BackendError) -> String {
             switch error {
-            case .notConfigured: String(localized: "ยังไม่ได้ตั้งค่าเซิร์ฟเวอร์")
-            case .notAuthenticated: String(localized: "เซสชันหมดอายุ ลองเปิดแอปใหม่")
+            case .notConfigured: String(localized: "The server isn't configured")
+            case .notAuthenticated: String(localized: "Your session expired. Try reopening the app.")
             case .registrationRequired: L10n.Account.registeredRequiredTitle
-            case .adminRequired: String(localized: "ต้องเป็นผู้ดูแลระบบ")
-            case .rateLimited: String(localized: "ทำรายการถี่เกินไป ลองใหม่ภายหลัง")
-            case .notFound: String(localized: "ไม่พบข้อมูล อาจถูกลบหรือเปลี่ยนสถานะแล้ว")
-            case .venueNotReviewable: String(localized: "สถานที่นี้ยังรับรีวิวไม่ได้")
+            case .adminRequired: String(localized: "Administrator access required")
+            case .rateLimited: String(localized: "Too many requests. Try again later.")
+            case .notFound: String(localized: "Not found. It may have been removed or changed.")
+            case .venueNotReviewable: String(localized: "This place can't be reviewed yet")
             case .challengeExpired, .challengeConsumed, .verificationConsumed, .verificationExpired, .verificationInvalid:
                 L10n.Review.reverify
             case .invalidInput(let code): inputMessage(code)
-            case .invalidStatusTransition: String(localized: "สถานะเปลี่ยนไปแล้ว รีเฟรชแล้วลองใหม่")
+            case .invalidStatusTransition: String(localized: "The status has changed. Refresh and try again.")
             case .likelyDuplicate: L10n.Admin.likelyDuplicate
-            case .providerRefExists: String(localized: "สถานที่นี้ผูกกับ Apple Maps ที่มีอยู่แล้ว ให้ทำเครื่องหมายว่าซ้ำ")
-            case .reviewRemoved: String(localized: "รีวิวของคุณสำหรับที่นี่ถูกลบโดยทีมงาน")
-            case .phoneAlreadyInUse: String(localized: "เบอร์นี้ผูกกับบัญชีอื่นแล้ว เราจะไม่รวมบัญชีโดยอัตโนมัติ กรุณาติดต่อทีมงาน")
-            case .invalidOTP: String(localized: "รหัสไม่ถูกต้องหรือหมดอายุ")
-            case .network: String(localized: "เชื่อมต่ออินเทอร์เน็ตไม่ได้")
+            case .providerRefExists: String(localized: "This Apple Maps place is already linked. Mark it as a duplicate instead.")
+            case .reviewRemoved: String(localized: "Your review for this place was removed by our team")
+            case .accountExists: String(localized: "This email already has an account. Sign in to it instead.")
+            case .deletionBlocked: String(localized: "Administrator accounts can't be deleted in the app. Ask another admin to remove your access first.")
+            case .invalidOTP: String(localized: "The code is incorrect or expired")
+            case .network: String(localized: "Can't connect to the internet")
             case .server: L10n.Common.somethingWentWrong
             }
         }
@@ -348,17 +404,19 @@ enum L10n {
             switch code {
             case "invalid_rating": L10n.Review.ratingRequired
             case "too_many_tags": L10n.Review.tooManyTags
-            case "body_too_long": String(localized: "ความคิดเห็นยาวเกิน 500 ตัวอักษร")
+            case "body_too_long": String(localized: "Comment is longer than 500 characters")
             case "name_required": L10n.Submission.nameRequired
             case "category_required": L10n.Submission.categoryRequired
             case "invalid_coordinate": L10n.Submission.locationRequired
             case "invalid_website_url": L10n.Submission.invalidWebsite
-            case "reason_required": String(localized: "กรุณาระบุเหตุผล")
-            case "invalid_phone": L10n.Account.invalidPhone
-            case "claim_already_pending": String(localized: "คุณมีคำขอที่รอตรวจสอบสำหรับสถานที่นี้แล้ว")
-            case "cannot_flag_own_review": String(localized: "รายงานรีวิวของตัวเองไม่ได้")
-            case "file_too_large": String(localized: "ไฟล์ใหญ่เกิน 5 MB")
-            case "too_many_photos": String(localized: "รูปภาพเกินจำนวนที่กำหนด")
+            case "reason_required": String(localized: "Please give a reason")
+            case "invalid_email": L10n.Account.invalidEmail
+            case "reserved_display_name": String(localized: "That name is reserved. Please choose another.")
+            case "invalid_display_name": L10n.Profile.renameRules
+            case "claim_already_pending": String(localized: "You already have a pending request for this place")
+            case "cannot_flag_own_review": String(localized: "You can't report your own review")
+            case "file_too_large": String(localized: "File is larger than 5 MB")
+            case "too_many_photos": String(localized: "Too many photos")
             default: L10n.Common.somethingWentWrong
             }
         }

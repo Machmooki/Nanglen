@@ -6,7 +6,7 @@ import UIKit
 final class VenueDetailViewController: UIViewController {
     private enum Segue {
         static let presentReviewComposer = "presentReviewComposer"
-        static let presentPhoneLink = "presentPhoneLink"
+        static let presentSignIn = "presentSignIn"
         static let presentClaim = "presentClaim"
     }
 
@@ -38,6 +38,11 @@ final class VenueDetailViewController: UIViewController {
     private weak var container: AppContainer?
     private var renderedReviewIDs: [UUID] = []
     private var renderedMedia: [String: URL] = [:]
+    private var renderedTagKey: [String]?
+    private let heroGallery = VenueHeroGalleryView()
+    /// Apple Maps Look Around scene at the venue; used for 360° when the place has no 360° photo of its own.
+    private var lookAroundScene: MKLookAroundScene?
+    private var lookAroundRequestedFor: UUID?
 
     func configure(viewModel: VenueDetailViewModel, container: AppContainer) {
         self.viewModel = viewModel
@@ -72,9 +77,9 @@ final class VenueDetailViewController: UIViewController {
         addressLabel.apply(AppTypography.footnote, color: AppColors.textSecondary)
         myReviewLabel.apply(AppTypography.footnote, color: AppColors.textSecondary)
         [tagsTitleLabel, reviewsTitleLabel, infoTitleLabel].forEach { AppStyles.sectionTitle($0) }
-        tagsTitleLabel.text = L10n.Detail.communityTags
+        tagsTitleLabel.text = L10n.Detail.facilities
         tagsNoteLabel.apply(AppTypography.caption, color: AppColors.textTertiary)
-        tagsNoteLabel.text = L10n.Detail.communityTagsNote
+        tagsNoteLabel.text = L10n.Detail.facilitiesNote
         reviewsTitleLabel.text = L10n.Detail.reviews
         infoTitleLabel.text = L10n.Detail.info
         emptyReviewsLabel.apply(AppTypography.subheadline, color: AppColors.textSecondary)
@@ -97,6 +102,32 @@ final class VenueDetailViewController: UIViewController {
         claimButton.configuration = claim
         writeReviewButton.accessibilityIdentifier = "detail.writeReview"
         favoriteBarButton.accessibilityIdentifier = "detail.favorite"
+        setUpHeroAndMap()
+    }
+
+    /// Photos become the hero at the top; the map moves down into the place-info section.
+    private func setUpHeroAndMap() {
+        guard let content = heroMapView.superview as? UIStackView else { return }
+        heroGallery.onShow360 = { [weak self] in self?.show360() }
+        content.insertArrangedSubview(heroGallery, at: 0)
+        galleryStackView.isHidden = true
+
+        guard let infoSection = infoStackView.superview as? UIStackView,
+              let index = infoSection.arrangedSubviews.firstIndex(of: infoStackView) else { return }
+        // The outlet is weak: keep a strong reference while the map changes parent.
+        let map: MKMapView = heroMapView
+        content.removeArrangedSubview(map)
+        infoSection.insertArrangedSubview(map, at: index + 1)
+        if let height = map.constraints.first(where: { $0.firstItem === map && $0.firstAttribute == .height && $0.secondItem == nil }) {
+            height.constant = 160
+        }
+        map.layer.cornerRadius = AppRadius.control + 4
+        map.accessibilityHint = L10n.Common.directions
+        map.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(mapTapped)))
+    }
+
+    @objc private func mapTapped() {
+        viewModel?.openDirections()
     }
 
     // MARK: Rendering
@@ -130,8 +161,14 @@ final class VenueDetailViewController: UIViewController {
         }
 
         renderGallery(state)
-        let tags = state.detail?.tagCounts ?? []
-        tagsView.configure(tags.prefix(8).map { ReviewTag.pill(for: $0.slug, count: $0.count) })
+        // Facilities: just what the place has, without how many visitors said so.
+        // "Expensive" is a price impression, not a facility, so it isn't listed here.
+        let tags = Array((state.detail?.tagCounts ?? []).filter { $0.slug != "expensive" }.prefix(8))
+        let tagKey = tags.map(\.slug)
+        if tagKey != renderedTagKey {
+            renderedTagKey = tagKey
+            tagsView.configure(tags.map { ReviewTag.pill(for: $0.slug) })
+        }
         [tagsTitleLabel, tagsNoteLabel, tagsView].forEach { $0?.isHidden = tags.isEmpty }
 
         renderReviews(state)
@@ -162,13 +199,38 @@ final class VenueDetailViewController: UIViewController {
 
     private func renderGallery(_ state: VenueDetailViewModel.State) {
         let urls = viewModel?.photoURLs(for: state.detail?.photoPaths ?? []) ?? []
-        AppComponents.replaceArrangedSubviews(of: galleryStackView, with: urls.prefix(3).map { url in
-            let imageView = RemoteImageView()
-            imageView.load(url)
-            imageView.heightAnchor.constraint(equalToConstant: 110).isActive = true
-            return imageView
-        })
-        galleryStackView.isHidden = urls.isEmpty
+        let panorama: VenueHeroGalleryView.Panorama =
+            state.panoramaURL != nil ? .photo : (lookAroundScene != nil ? .lookAround : .none)
+        heroGallery.configure(photoURLs: urls, category: state.venue.category, panorama: panorama, isLoading: state.isLoading)
+        requestLookAroundIfNeeded(state)
+    }
+
+    /// Looks up Apple's street-level 360° imagery once per venue (not every place has coverage).
+    private func requestLookAroundIfNeeded(_ state: VenueDetailViewModel.State) {
+        guard state.detail != nil, lookAroundRequestedFor != state.venue.id else { return }
+        lookAroundRequestedFor = state.venue.id
+        let coordinate = CLLocationCoordinate2D(latitude: state.venue.coordinate.latitude, longitude: state.venue.coordinate.longitude)
+        Task { [weak self] in
+            let scene = try? await MKLookAroundSceneRequest(coordinate: coordinate).scene
+            guard let self, let scene, let current = viewModel?.state else { return }
+            lookAroundScene = scene
+            renderGallery(current)
+        }
+    }
+
+    private func show360() {
+        guard let state = viewModel?.state else { return }
+        AppComponents.selectionHaptic()
+        if let url = state.panoramaURL {
+            present(PanoramaViewController(imageURL: url, placeName: state.venue.name), animated: true)
+        } else if let scene = lookAroundScene {
+            let lookAround = MKLookAroundViewController(scene: scene)
+            if let sheet = lookAround.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+            }
+            present(lookAround, animated: true)
+        }
     }
 
     private func renderReviews(_ state: VenueDetailViewModel.State) {
@@ -196,7 +258,7 @@ final class VenueDetailViewController: UIViewController {
         if let description = state.detail?.description { rows.append(infoRow(symbol: "text.quote", title: nil, value: description)) }
         // Official details are only shown when their source is known.
         if state.detail?.detailsSource != nil {
-            if let url = state.detail?.websiteURL { rows.append(linkRow(symbol: "safari", title: L10n.Detail.website, value: url.host ?? url.absoluteString, url: url)) }
+            if let url = state.detail?.websiteURL, SafeLink.isWebURL(url) { rows.append(linkRow(symbol: "safari", title: L10n.Detail.website, value: url.host ?? url.absoluteString, url: url)) }
             if let phone = state.detail?.phoneNumber, let url = URL(string: "tel:\(phone.filter { $0.isNumber || $0 == "+" })") {
                 rows.append(linkRow(symbol: "phone", title: L10n.Detail.phone, value: phone, url: url))
             }
@@ -284,8 +346,8 @@ final class VenueDetailViewController: UIViewController {
     private func presentRegistrationPrompt(message: String) {
         let alert = UIAlertController(title: L10n.Account.registeredRequiredTitle, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
-        alert.addAction(UIAlertAction(title: L10n.Account.linkPhone, style: .default) { [weak self] _ in
-            self?.performSegue(withIdentifier: Segue.presentPhoneLink, sender: self)
+        alert.addAction(UIAlertAction(title: L10n.Account.verifyEmail, style: .default) { [weak self] _ in
+            self?.performSegue(withIdentifier: Segue.presentSignIn, sender: self)
         })
         present(alert, animated: true)
     }
@@ -297,9 +359,9 @@ final class VenueDetailViewController: UIViewController {
         }
         let sheet = UIAlertController(title: L10n.Detail.report, message: nil, preferredStyle: .actionSheet)
         let reasons: [(FlagReason, String)] = [
-            (.spam, String(localized: "สแปมหรือโฆษณา")), (.offensive, String(localized: "ไม่สุภาพหรือสร้างความเกลียดชัง")),
-            (.notARealVisit, String(localized: "ไม่น่าจะไปจริง")), (.wrongVenue, String(localized: "รีวิวผิดสถานที่")),
-            (.privacy, String(localized: "ละเมิดความเป็นส่วนตัว")), (.other, L10n.Category.other),
+            (.spam, L10n.Detail.flagSpam), (.offensive, L10n.Detail.flagOffensive),
+            (.notARealVisit, L10n.Detail.flagNotARealVisit), (.wrongVenue, L10n.Detail.flagWrongVenue),
+            (.privacy, L10n.Detail.flagPrivacy), (.other, L10n.Category.other),
         ]
         for (reason, title) in reasons {
             sheet.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in self?.viewModel?.report(reviewID: review.id, reason: reason) })
@@ -319,8 +381,8 @@ final class VenueDetailViewController: UIViewController {
             (navigation.topViewController as? ReviewComposerViewController)?.configure(
                 viewModel: container.makeReviewComposerViewModel(venue: viewModel.state.venue, existing: viewModel.state.myReview),
                 container: container)
-        case Segue.presentPhoneLink:
-            (navigation.topViewController as? PhoneLinkViewController)?.configure(viewModel: container.makePhoneLinkViewModel(), isDemo: container.isDemo)
+        case Segue.presentSignIn:
+            (navigation.topViewController as? SignInViewController)?.configure(viewModel: container.makeSignInViewModel(), isDemo: container.isDemo)
         case Segue.presentClaim:
             (navigation.topViewController as? ClaimVenueViewController)?.configure(viewModel: container.makeClaimViewModel(venue: viewModel.state.venue))
         default:

@@ -15,15 +15,18 @@ final class CategoryChipCell: UICollectionViewCell {
     }
 
     private func setUp() {
-        contentView.layer.cornerRadius = 18
         contentView.layer.cornerCurve = .continuous
-        contentView.layer.borderWidth = 1
         titleLabel.apply(AppTypography.chip)
         iconImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .footnote, scale: .medium)
         registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (cell: CategoryChipCell, _: UITraitCollection) in
             cell.updateAppearance()
         }
         updateAppearance()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        contentView.layer.cornerRadius = contentView.bounds.height / 2
     }
 
     override var isSelected: Bool {
@@ -38,11 +41,10 @@ final class CategoryChipCell: UICollectionViewCell {
     }
 
     private func updateAppearance() {
-        contentView.backgroundColor = isSelected ? AppColors.primary : AppColors.card
-        titleLabel.textColor = isSelected ? .white : AppColors.textPrimary
+        // Filled brand capsule when selected, soft brand tint otherwise (no outlines: cleaner, more modern).
+        contentView.backgroundColor = isSelected ? AppColors.primary : AppColors.primarySoft
+        titleLabel.textColor = isSelected ? .white : AppColors.primary
         iconImageView.tintColor = isSelected ? .white : AppColors.primary
-        let border = isSelected ? UIColor.clear : UIColor.separator.withAlphaComponent(0.4)
-        contentView.layer.borderColor = border.resolvedColor(with: traitCollection).cgColor
         accessibilityTraits = isSelected ? [.button, .selected] : .button
     }
 }

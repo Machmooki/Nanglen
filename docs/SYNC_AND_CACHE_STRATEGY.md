@@ -25,7 +25,7 @@ The v1 tables (`check_ins`, `venues`, `favorites`, `app_identity`) are left in p
 
 ## Identity continuity
 
-Guest favorites belong to the anonymous auth user. Linking a phone keeps the same user id, so favorites and everything else stay attached (tested in the Demo backend). Losing the anonymous session before linking loses the guest data. Profile and Saved explain this.
+Guest favorites belong to the anonymous auth user. Verifying an email keeps the same user id, so favorites and everything else stay attached (tested in the Demo backend). Losing the anonymous session before linking loses the guest data. Profile and Saved explain this.
 
 ## Not built (by design)
 

@@ -21,8 +21,26 @@ class WrapLayoutView: UIView {
         invalidateIntrinsicContentSize()
     }
 
+    /// Cached measurement so Auto Layout's repeated size queries don't re-measure every subview.
+    private var measuredCache: (width: CGFloat, height: CGFloat)?
+
     override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric, height: arrangedViews.isEmpty ? 0 : max(contentHeight, measuredHeight(for: bounds.width)))
+        guard !arrangedViews.isEmpty else { return CGSize(width: UIView.noIntrinsicMetric, height: 0) }
+        let width = bounds.width > 0 ? bounds.width : 320
+        if width == lastWidth, contentHeight > 0 {
+            return CGSize(width: UIView.noIntrinsicMetric, height: contentHeight)
+        }
+        if let cache = measuredCache, cache.width == width {
+            return CGSize(width: UIView.noIntrinsicMetric, height: cache.height)
+        }
+        let height = measuredHeight(for: width)
+        measuredCache = (width, height)
+        return CGSize(width: UIView.noIntrinsicMetric, height: height)
+    }
+
+    override func setNeedsLayout() {
+        measuredCache = nil
+        super.setNeedsLayout()
     }
 
     override func layoutSubviews() {

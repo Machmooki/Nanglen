@@ -69,7 +69,11 @@ final class SupabaseBackend: NanglenBackend {
         if let error = error as? PostgrestError { return BackendError.fromServerMessage(error.message) }
         if let error = error as? AuthError {
             if case let .api(message, code, _, _) = error {
-                if code == .phoneExists || code == .identityAlreadyExists { return BackendError.phoneAlreadyInUse }
+                if code == .emailExists || code == .userAlreadyExists || code == .phoneExists || code == .identityAlreadyExists {
+                    return BackendError.accountExists
+                }
+                if code == .userNotFound || code == .otpDisabled { return BackendError.notFound }
+                if code == .overEmailSendRateLimit { return BackendError.rateLimited }
                 if code == .otpExpired || message.localizedCaseInsensitiveContains("token") { return BackendError.invalidOTP }
                 return BackendError.server(message)
             }
@@ -112,26 +116,83 @@ final class SupabaseBackend: NanglenBackend {
         return dto.model
     }
 
-    func requestPhoneLink(phoneE164: String) async throws {
+    func requestEmailLink(email: String) async throws {
         do {
-            // For an anonymous user this links a phone identity to the SAME user id after OTP verification.
-            try await client.auth.update(user: UserAttributes(phone: phoneE164))
+            // For an anonymous user this links an email identity to the SAME user id after the code is verified.
+            // The "Change email address" template must contain {{ .Token }} (see supabase/templates/email_otp.html).
+            try await client.auth.update(user: UserAttributes(email: email))
         } catch {
             throw Self.map(error)
         }
     }
 
-    func confirmPhoneLink(phoneE164: String, code: String) async throws {
+    func confirmEmailLink(email: String, code: String) async throws {
         do {
-            try await client.auth.verifyOTP(phone: phoneE164, token: code, type: .phoneChange)
+            try await client.auth.verifyOTP(email: email, token: code, type: .emailChange)
             _ = try await client.auth.refreshSession()
         } catch {
             throw Self.map(error)
         }
     }
 
+    func requestEmailSignIn(email: String) async throws {
+        do {
+            // Existing accounts only: never creates a second account by accident.
+            try await client.auth.signInWithOTP(email: email, shouldCreateUser: false)
+        } catch {
+            throw Self.map(error)
+        }
+    }
+
+    func confirmEmailSignIn(email: String, code: String) async throws {
+        do {
+            try await client.auth.verifyOTP(email: email, token: code, type: .email)
+        } catch {
+            throw Self.map(error)
+        }
+    }
+
+    func deleteAccount() async throws {
+        do {
+            // The Edge Function derives the user from this session's JWT and uses the service role server-side.
+            try await client.functions.invoke("delete-account", options: FunctionInvokeOptions(method: .post))
+        } catch let error as FunctionsError {
+            if case let .httpError(code, _) = error, code == 409 { throw BackendError.deletionBlocked }
+            throw BackendError.server("delete_failed")
+        } catch {
+            throw Self.map(error)
+        }
+        try? await client.auth.signOut(scope: .local)
+        try await ensureSession()
+    }
+
     func updateDisplayName(_ name: String) async throws {
         try await rpcVoid("update_my_display_name", ["p_display_name": name])
+    }
+
+    private struct AvatarChange: Decodable, Sendable {
+        var previous_path: String?
+    }
+
+    /// Upload first, then `set_my_avatar` checks the caller owns the object. The old file is deleted afterwards
+    /// (best effort: a leftover file is private to its owner and is removed with the account).
+    func updateAvatar(_ photo: PhotoUpload?) async throws {
+        let bucket = client.storage.from(MediaBucket.avatar.rawValue)
+        let change: AvatarChange
+        if let photo {
+            let path = "\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
+            do {
+                try await bucket.upload(path, data: photo.data, options: FileOptions(contentType: photo.mimeType, upsert: false))
+            } catch {
+                throw Self.map(error)
+            }
+            change = try await rpc("set_my_avatar", ["p_storage_path": path])
+        } else {
+            change = try await rpc("clear_my_avatar")
+        }
+        if let previous = change.previous_path {
+            _ = try? await bucket.remove(paths: [previous])
+        }
     }
 
     func signOut() async throws {
@@ -147,11 +208,13 @@ final class SupabaseBackend: NanglenBackend {
 
     func searchVenues(_ query: VenueSearchQuery) async throws -> VenueSearchPage {
         let params = SearchParams(
-            p_query: query.trimmedText.isEmpty ? nil : query.trimmedText,
+            p_query: query.trimmedText.isEmpty ? nil : String(query.trimmedText.prefix(100)),
             p_latitude: query.origin?.latitude, p_longitude: query.origin?.longitude,
             p_radius_m: query.radiusMeters, p_category: query.category?.rawValue,
             p_min_rating: query.filter.minimumRating.value, p_sort: query.filter.sort.rawValue,
-            p_limit: query.limit + 1, p_offset: query.offset)
+            p_limit: query.limit + 1, p_offset: query.offset,
+            p_tags: query.filter.tags.isEmpty ? nil : query.filter.tags.sorted(),
+            p_reviewed_only: query.filter.reviewedOnly)
         let rows: [VenueCardDTO] = try await rpc("search_venues", params)
         return VenueSearchPage(venues: rows.prefix(query.limit).map(\.model), hasMore: rows.count > query.limit)
     }
@@ -267,11 +330,11 @@ final class SupabaseBackend: NanglenBackend {
         try await rpcVoid("flag_review", FlagParams(p_review_id: id, p_reason: reason.rawValue, p_note: note))
     }
 
-    /// Uploads to '<uid>/<parent>/<uuid>.<ext>' — the only shape Storage RLS and attach RPCs accept.
+    /// Uploads to '<parent>/<uuid>.<ext>' — the only shape Storage RLS and attach RPCs accept.
     private func uploadPhoto(_ photo: PhotoUpload, parent: UUID, bucket: MediaBucket) async throws -> String {
         do {
-            let uid = try await client.auth.session.user.id
-            let path = "\(uid.uuidString.lowercased())/\(parent.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
+            // '<parent>/<random>.<ext>': no auth user id in public paths. Storage RLS checks parent ownership.
+            let path = "\(parent.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
             try await client.storage.from(bucket.rawValue).upload(path, data: photo.data, options: FileOptions(contentType: photo.mimeType, upsert: false))
             return path
         } catch {

@@ -3,7 +3,7 @@ import UIKit
 /// Card that explains and shows the visit-verification state, with a contextual action.
 final class VerificationStatusView: UIView {
     enum Action {
-        case retry, openSettings, linkPhone
+        case retry, openSettings, verifyEmail
     }
 
     var onAction: ((Action) -> Void)?
@@ -89,7 +89,7 @@ final class VerificationStatusView: UIView {
             config.title = switch action {
             case .retry: L10n.Review.verifyAgain
             case .openSettings: L10n.Common.openSettings
-            case .linkPhone: L10n.Account.linkPhone
+            case .verifyEmail: L10n.Account.verifyEmail
             }
             config.baseForegroundColor = AppColors.primary
             config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
@@ -139,7 +139,7 @@ final class VerificationStatusView: UIView {
         case .permissionDenied:
             Model(symbol: "location.slash.fill", title: L10n.Review.permissionDenied, message: nil, tone: .bad, action: .openSettings)
         case .registrationRequired:
-            Model(symbol: "person.badge.shield.checkmark", title: L10n.Review.registrationRequired, message: L10n.Account.registeredRequiredReview, tone: .warning, action: .linkPhone)
+            Model(symbol: "envelope.badge.shield.half.filled", title: L10n.Review.registrationRequired, message: L10n.Account.registeredRequiredReview, tone: .warning, action: .verifyEmail)
         case .failed(let message):
             Model(symbol: "exclamationmark.triangle.fill", title: message, message: nil, tone: .bad, action: .retry)
         }

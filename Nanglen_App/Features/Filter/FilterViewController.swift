@@ -13,6 +13,10 @@ final class FilterViewController: UIViewController {
 
     private var viewModel: FilterViewModel?
     private var onApply: ((VenueFilter) -> Void)?
+    private let goodForTitle = UILabel()
+    private let goodForHint = UILabel()
+    private let tagChips = ChipGroupView()
+    private let reviewedSwitch = UISwitch()
 
     func configure(viewModel: FilterViewModel, onApply: @escaping (VenueFilter) -> Void) {
         self.viewModel = viewModel
@@ -34,8 +38,44 @@ final class FilterViewController: UIViewController {
         fill(distanceControl, FilterViewModel.distances.map(FilterViewModel.title(for:)))
         fill(ratingControl, FilterViewModel.ratings.map(FilterViewModel.title(for:)))
         AppStyles.primaryButton(applyButton, title: L10n.Filter.apply)
+        addGoodForSection()
         viewModel?.onChange = { [weak self] _ in self?.render() }
         render()
+    }
+
+    /// "Good for" chips and the reviews switch go first: they are the filters people use most.
+    private func addGoodForSection() {
+        guard let stack = sortTitleLabel.superview as? UIStackView else { return }
+        AppStyles.sectionTitle(goodForTitle)
+        goodForTitle.text = L10n.Filter.goodFor
+        goodForHint.apply(AppTypography.footnote, color: AppColors.textSecondary)
+        goodForHint.text = L10n.Filter.goodForHint
+        goodForHint.numberOfLines = 0
+        tagChips.maximumSelection = VenueFilter.maxTags
+        tagChips.configure(items: VenueFilter.goodForTags.compactMap(ReviewTag.named).map { .init(id: $0.slug, title: $0.title, symbol: $0.symbol) },
+                           selection: viewModel?.filter.tags ?? [])
+        tagChips.onChange = { [weak self] selection in self?.viewModel?.setTags(selection) }
+        tagChips.onLimitReached = { [weak self] in self?.showToast(L10n.Filter.tooManyTags) }
+
+        let switchLabel = UILabel()
+        switchLabel.apply(AppTypography.body)
+        switchLabel.text = L10n.Filter.reviewedOnly
+        switchLabel.numberOfLines = 0
+        reviewedSwitch.onTintColor = AppColors.primary
+        reviewedSwitch.accessibilityLabel = L10n.Filter.reviewedOnly
+        reviewedSwitch.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            viewModel?.setReviewedOnly(reviewedSwitch.isOn)
+        }, for: .valueChanged)
+        let switchRow = UIStackView(arrangedSubviews: [switchLabel, reviewedSwitch])
+        switchRow.alignment = .center
+        switchRow.spacing = AppSpacing.m
+
+        for (offset, view) in [goodForTitle, goodForHint, tagChips, switchRow].enumerated() {
+            stack.insertArrangedSubview(view, at: offset)
+        }
+        stack.setCustomSpacing(AppSpacing.xs, after: goodForTitle)
+        stack.setCustomSpacing(AppSpacing.xxl, after: switchRow)
     }
 
     private func fill(_ control: UISegmentedControl, _ titles: [String]) {
@@ -49,6 +89,11 @@ final class FilterViewController: UIViewController {
         sortControl.selectedSegmentIndex = FilterViewModel.sorts.firstIndex(of: filter.sort) ?? 0
         distanceControl.selectedSegmentIndex = FilterViewModel.distances.firstIndex(of: filter.distance) ?? 1
         ratingControl.selectedSegmentIndex = FilterViewModel.ratings.firstIndex(of: filter.minimumRating) ?? 0
+        if reviewedSwitch.isOn != filter.reviewedOnly { reviewedSwitch.setOn(filter.reviewedOnly, animated: true) }
+        if tagChips.selection != filter.tags {
+            tagChips.configure(items: VenueFilter.goodForTags.compactMap(ReviewTag.named).map { .init(id: $0.slug, title: $0.title, symbol: $0.symbol) },
+                               selection: filter.tags)
+        }
     }
 
     @IBAction private func sortChanged(_ sender: UISegmentedControl) { viewModel?.setSort(index: sender.selectedSegmentIndex) }

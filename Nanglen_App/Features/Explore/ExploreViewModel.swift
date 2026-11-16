@@ -5,8 +5,18 @@ nonisolated struct VenueCardItem: Identifiable, Hashable, Sendable {
     var venue: VenueSummary
     var isFavorite: Bool
     var isStale = false
+    /// Tags the user filtered by; shown first on the card so it's clear why the place matched.
+    var highlightedTags: Set<String> = []
+    /// Resolved (signed) URL for `venue.coverPath`, filled in after the list loads.
+    var coverURL: URL?
 
     var id: UUID { venue.id }
+
+    /// Up to three tags: matched filter tags first, then the venue's most-chosen tags.
+    var displayTags: [String] {
+        let matched = venue.topTags.filter(highlightedTags.contains) + highlightedTags.sorted().filter { !venue.topTags.contains($0) }
+        return Array((matched + venue.topTags.filter { !highlightedTags.contains($0) }).prefix(3))
+    }
 }
 
 /// Search-first discovery over **approved** Nanglen venues only.
@@ -57,11 +67,16 @@ final class ExploreViewModel {
         var source: DataSourceState = .live
         var locationState: LocationState = .defaultArea
         var favoriteIDs: Set<UUID> = []
+        /// Signed cover-photo URLs keyed by storage path, resolved lazily for the cards on screen.
+        var coverURLs: [String: URL] = [:]
 
         var isSearching: Bool { !query.trimmingCharacters(in: .whitespaces).isEmpty }
 
         var items: [VenueCardItem] {
-            venues.map { VenueCardItem(venue: $0, isFavorite: favoriteIDs.contains($0.id), isStale: source != .live) }
+            venues.map {
+                VenueCardItem(venue: $0, isFavorite: favoriteIDs.contains($0.id), isStale: source != .live,
+                              highlightedTags: filter.tags, coverURL: $0.coverPath.flatMap { coverURLs[$0] })
+            }
         }
 
         var sections: [Section] {
@@ -174,6 +189,12 @@ final class ExploreViewModel {
         reload()
     }
 
+    func removeFilter(_ item: VenueFilter.Item) {
+        var filter = state.filter
+        filter.remove(item)
+        apply(filter)
+    }
+
     func resetFilters() {
         state.filter = .default
         state.category = nil
@@ -221,6 +242,19 @@ final class ExploreViewModel {
             let known = Set(state.venues.map(\.id))
             state.venues += page.venues.filter { !known.contains($0.id) }
             state.hasMore = page.hasMore
+            resolveCovers(for: page.venues)
+        }
+    }
+
+    /// Signs cover-photo paths that aren't resolved yet, then updates the cards in place.
+    private func resolveCovers(for list: [VenueSummary]) {
+        let missing = Set(list.compactMap(\.coverPath)).subtracting(state.coverURLs.keys)
+        guard !missing.isEmpty else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            let urls = await venues.signedURLs(paths: Array(missing), bucket: .venue)
+            guard !urls.isEmpty else { return }
+            state.coverURLs.merge(urls) { _, new in new }
         }
     }
 
@@ -252,6 +286,7 @@ final class ExploreViewModel {
                 state.source = results.source
                 state.hasLoadedOnce = true
                 state.isLoading = false
+                resolveCovers(for: results.venues)
                 if state.isSearching { onEvent?(.fitMapToResults) }
                 if !query.trimmedText.isEmpty { venues.log("search", venueID: nil) }
             } catch is CancellationError {

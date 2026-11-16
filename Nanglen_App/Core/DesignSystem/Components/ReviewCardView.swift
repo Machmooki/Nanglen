@@ -71,6 +71,11 @@ final class ReviewCardView: UIView {
         ])
     }
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        AppStyles.updateShadowPath(self)
+    }
+
     func configure(_ review: PublishedReview, photoURLs: [URL]) {
         authorLabel.text = review.isMine ? "\(review.authorName) (\(L10n.Detail.you))" : review.authorName
         starsLabel.text = StarText.stars(review.rating)
@@ -128,7 +133,9 @@ final class RemoteImageView: UIImageView {
         backgroundColor = AppColors.fill
     }
 
-    func load(_ url: URL?) {
+    /// - Parameter maxPixelSize: decode size cap in pixels; defaults to the view's current size.
+    ///   Pass one when the view isn't laid out yet (e.g. a cell or page that was just created).
+    func load(_ url: URL?, maxPixelSize: CGFloat? = nil) {
         task?.cancel()
         image = nil
         guard let url else { return }
@@ -136,16 +143,32 @@ final class RemoteImageView: UIImageView {
             image = cached
             return
         }
+        // Read and decode off the main thread; a decoded image draws without a hitch while scrolling.
+        let target = maxPixelSize ?? max(bounds.width, bounds.height, 120) * max(traitCollection.displayScale, 1)
         task = Task { [weak self] in
-            let data: Data?
-            if url.isFileURL {
-                data = try? Data(contentsOf: url)
-            } else {
-                data = try? await URLSession.shared.data(from: url).0
-            }
-            guard !Task.isCancelled, let data, let image = UIImage(data: data) else { return }
+            let image = await Self.decodedImage(at: url, maxPixelSize: target)
+            guard !Task.isCancelled, let image else { return }
             Self.cache.setObject(image, forKey: url as NSURL)
             self?.image = image
         }
+    }
+
+    /// `@concurrent` keeps this off the main actor (the project uses approachable concurrency).
+    @concurrent
+    private nonisolated static func decodedImage(at url: URL, maxPixelSize: CGFloat) async -> UIImage? {
+        let data: Data?
+        if url.isFileURL {
+            data = try? Data(contentsOf: url)
+        } else {
+            data = try? await URLSession.shared.data(from: url).0
+        }
+        guard let data, let image = UIImage(data: data) else { return nil }
+        let longest = max(image.size.width, image.size.height) * image.scale
+        if longest > maxPixelSize, longest > 0 {
+            let ratio = maxPixelSize / longest
+            let size = CGSize(width: image.size.width * image.scale * ratio, height: image.size.height * image.scale * ratio)
+            if let thumbnail = await image.byPreparingThumbnail(ofSize: size) { return thumbnail }
+        }
+        return await image.byPreparingForDisplay() ?? image
     }
 }

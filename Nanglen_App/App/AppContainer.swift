@@ -115,8 +115,8 @@ final class AppContainer {
                                 session: session, configuration: configuration)
     }
 
-    func makePhoneLinkViewModel() -> PhoneLinkViewModel {
-        PhoneLinkViewModel(session: session)
+    func makeSignInViewModel() -> SignInViewModel {
+        SignInViewModel(session: session)
     }
 
     func makeAddPlaceViewModel(editing: VenueSubmission? = nil) -> AddPlaceViewModel {
@@ -130,7 +130,7 @@ final class AppContainer {
     }
 
     func makeProfileViewModel() -> ProfileViewModel {
-        ProfileViewModel(session: session, business: business, cache: cache, location: locationManager, notifier: notifier)
+        ProfileViewModel(session: session, business: business, venues: venues, cache: cache, location: locationManager, notifier: notifier)
     }
 
     func makeMySubmissionsViewModel() -> MySubmissionsViewModel {

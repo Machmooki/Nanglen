@@ -19,7 +19,10 @@ nonisolated enum BackendError: Error, Hashable, Sendable {
     case likelyDuplicate
     case providerRefExists
     case reviewRemoved
-    case phoneAlreadyInUse
+    /// The email already belongs to another account (offer an explicit sign-in; never merge).
+    case accountExists
+    /// Active Admins must be revoked before their account can be deleted.
+    case deletionBlocked
     case invalidOTP
     case network
     case server(String)
@@ -48,7 +51,8 @@ nonisolated enum BackendError: Error, Hashable, Sendable {
         case "invalid_rating", "body_too_long", "too_many_tags", "unknown_tag", "name_required",
              "invalid_coordinate", "invalid_website_url", "reason_required", "file_too_large",
              "too_many_photos", "invalid_storage_path", "invalid_display_name", "idempotency_conflict",
-             "claim_already_pending", "already_manager", "cannot_flag_own_review":
+             "claim_already_pending", "already_manager", "cannot_flag_own_review", "reserved_display_name",
+             "invalid_sort":
             return .invalidInput(code)
         default: return .server(code)
         }
@@ -68,6 +72,8 @@ nonisolated enum MediaBucket: String, Sendable {
     /// Submission photos; approved ones double as public venue photos.
     case venue = "venue-submission-media"
     case review = "review-media"
+    /// Profile photos ('<uuid>.<ext>' at the bucket root).
+    case avatar = "avatars"
 }
 
 // MARK: - Remote data source contracts
@@ -81,10 +87,17 @@ protocol AuthRemote: AnyObject {
     /// Restores the persisted session or signs in anonymously (Guest).
     func ensureSession() async throws
     func capabilities() async throws -> UserCapabilities
-    /// Sends an OTP to link a phone number to the *current* user (keeps the same user id).
-    func requestPhoneLink(phoneE164: String) async throws
-    func confirmPhoneLink(phoneE164: String, code: String) async throws
+    /// Sends a 6-digit code to link a verified email to the *current* user (keeps the same user id).
+    func requestEmailLink(email: String) async throws
+    func confirmEmailLink(email: String, code: String) async throws
+    /// Returning user on a new device: sends a sign-in code for an existing account.
+    func requestEmailSignIn(email: String) async throws
+    func confirmEmailSignIn(email: String, code: String) async throws
+    /// Deletes the caller's account and personal uploads, then starts a fresh Guest session.
+    func deleteAccount() async throws
     func updateDisplayName(_ name: String) async throws
+    /// Sets (or with `nil`, removes) the caller's profile photo. Registered users only.
+    func updateAvatar(_ photo: PhotoUpload?) async throws
     func signOut() async throws
 }
 

@@ -9,12 +9,13 @@ select * from no_plan();
 -- ---------------------------------------------------------------------------
 -- Fixtures (as postgres)
 -- ---------------------------------------------------------------------------
-insert into auth.users (id, aud, role, phone, phone_confirmed_at, is_anonymous, created_at, updated_at) values
-    ('10000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', null,          null,  true,  now(), now()), -- guest
-    ('10000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', '66810000002', now(), false, now(), now()), -- registered R1
-    ('10000000-0000-4000-8000-000000000003', 'authenticated', 'authenticated', '66810000003', now(), false, now(), now()), -- registered R2
-    ('10000000-0000-4000-8000-000000000004', 'authenticated', 'authenticated', '66810000004', now(), false, now(), now()), -- admin
-    ('10000000-0000-4000-8000-000000000005', 'authenticated', 'authenticated', null,          null,  false, now(), now()); -- permanent, phone NOT confirmed
+insert into auth.users (id, aud, role, email, email_confirmed_at, phone, phone_confirmed_at, is_anonymous, created_at, updated_at) values
+    ('10000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', null,               null,  null,          null,  true,  now(), now()), -- guest
+    ('10000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'r1@example.test',  now(), null,          null,  false, now(), now()), -- registered R1
+    ('10000000-0000-4000-8000-000000000003', 'authenticated', 'authenticated', 'r2@example.test',  now(), null,          null,  false, now(), now()), -- registered R2
+    ('10000000-0000-4000-8000-000000000004', 'authenticated', 'authenticated', 'adm@example.test', now(), null,          null,  false, now(), now()), -- admin
+    ('10000000-0000-4000-8000-000000000005', 'authenticated', 'authenticated', 'pending@example.test', null, null,       null,  false, now(), now()), -- permanent, email NOT confirmed
+    ('10000000-0000-4000-8000-000000000006', 'authenticated', 'authenticated', null,               null,  '66810000006', now(), false, now(), now()); -- phone only (phone disabled by default)
 select private.grant_admin('10000000-0000-4000-8000-000000000004', 'pgtap');
 
 insert into public.venues (id, name, category, formatted_address, location, provenance) values
@@ -66,7 +67,10 @@ select throws_ok($$ select user_id from public.reviews $$, '42501', null, 'Revie
 -- Permanent but phone-unverified user is not Registered.
 select pg_temp.login('10000000-0000-4000-8000-000000000005', false);
 select throws_ok($$ select public.issue_visit_challenge('20000000-0000-4000-8000-000000000001') $$,
-                 '42501', 'registration_required', 'Unverified phone cannot review');
+                 '42501', 'registration_required', 'Unconfirmed email cannot review');
+select pg_temp.login('10000000-0000-4000-8000-000000000006', false);
+select throws_ok($$ select public.issue_visit_challenge('20000000-0000-4000-8000-000000000001') $$,
+                 '42501', 'registration_required', 'Phone-only user is not Registered while phone sign-in is disabled');
 
 -- ---------------------------------------------------------------------------
 -- Venue submission → mandatory Admin approval
@@ -244,6 +248,32 @@ select ok(not private.can_manage_venue('20000000-0000-4000-8000-000000000002', '
           'Other users do not manage the venue');
 select ok(not private.can_manage_venue('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003'),
           'Membership is scoped to the business venues');
+
+-- ---------------------------------------------------------------------------
+-- 0008 hardening and filters
+-- ---------------------------------------------------------------------------
+reset role;
+select ok(not has_function_privilege('anon', 'public.log_event(text, uuid, jsonb)', 'execute'), 'anon cannot write analytics');
+select ok(not has_function_privilege('authenticated', 'public.account_deletion_blocked(uuid)', 'execute'), 'Only the service role checks deletion');
+select ok(private.valid_media_path('20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001.jpg',
+          null, '20000000-0000-4000-8000-000000000001'), 'Media path is <parent>/<file> (no uploader id)');
+select ok(not private.valid_media_path('10000000-0000-4000-8000-000000000002/20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001.jpg',
+          null, '20000000-0000-4000-8000-000000000001'), 'Old path shape with the uploader id is rejected');
+
+set local role authenticated;
+select pg_temp.login('10000000-0000-4000-8000-000000000003');
+select throws_ok($$ select public.update_my_display_name('Nanglen Admin') $$, '22023', 'reserved_display_name', 'Staff names are reserved');
+select lives_ok($$ select public.update_my_display_name(E'Mint\u200B  Reader') $$, 'Normal names are accepted');
+select is((public.get_my_capabilities())->>'display_name', 'Mint Reader', 'Invisible characters and extra spaces are removed');
+select ok(((public.get_my_capabilities())->>'contact_hint') like 'r•••@example.test', 'Only a masked email is returned');
+
+select pg_temp.login('10000000-0000-4000-8000-000000000002');
+select is((select count(*) from public.search_venues(p_tags => array['quiet'])), 0::bigint,
+          'Tag filter excludes venues where no current published review chose the tag');
+select is((select count(*) from public.search_venues(p_query => 'reading room', p_reviewed_only => true)), 0::bigint,
+          'Has-reviews filter excludes venues whose only review is hidden');
+select throws_ok($$ select * from public.search_venues(p_tags => array['not_a_tag']) $$, '22023', 'unknown_tag', 'Unknown tags are rejected');
+select throws_ok($$ select * from public.search_venues(p_min_rating => 9) $$, '22023', 'invalid_rating', 'Rating filter is bounded');
 
 -- Admin revocation is immediate
 reset role;

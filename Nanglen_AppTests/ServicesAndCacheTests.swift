@@ -1,5 +1,7 @@
 import Foundation
 import GRDB
+import ImageIO
+import UIKit
 import Testing
 @testable import Nanglen_App
 
@@ -153,5 +155,21 @@ struct LocalCacheTests {
         #expect(tables.contains("cached_venues"))
         #expect(tables.contains("local_drafts"))
         #expect(try queue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM check_ins") } == 1)
+    }
+}
+
+@MainActor
+struct PhotoPrivacyTests {
+    /// Uploaded photos are re-rendered, so camera metadata (including GPS) never leaves the device.
+    @Test func encodedPhotoHasNoLocationMetadata() throws {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 40, height: 30)).image { context in
+            UIColor.systemTeal.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 40, height: 30))
+        }
+        let upload = try #require(PhotoEncoder.upload(from: image))
+        #expect(upload.mimeType == "image/jpeg")
+        let source = try #require(CGImageSourceCreateWithData(upload.data as CFData, nil))
+        let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        #expect(properties?[kCGImagePropertyGPSDictionary] == nil)
     }
 }

@@ -52,6 +52,12 @@ final class PlaceCardCell: UITableViewCell {
         accessibilityTraits = .button
     }
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        contentView.layoutIfNeeded()
+        AppStyles.updateShadowPath(cardView)
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
         coverView.load(nil)
@@ -67,7 +73,7 @@ final class PlaceCardCell: UITableViewCell {
         metaLabel.text = venue.metaText
         favoriteImageView.isHidden = !item.isFavorite
         ratingBadgeView.configure(venue.rating)
-        let tags = venue.topTags.prefix(3).map { ReviewTag.pill(for: $0) }
+        let tags = item.displayTags.map { ReviewTag.pill(for: $0) }
         for (index, pill) in pillViews.enumerated() {
             if index < tags.count {
                 pill.configure(tags[index])

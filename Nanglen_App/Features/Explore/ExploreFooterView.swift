@@ -25,6 +25,11 @@ final class ExploreFooterView: UIView {
         loadMoreButton.addAction(UIAction { [weak self] _ in self?.onLoadMore?() }, for: .primaryActionTriggered)
         spinner.color = AppColors.primary
 
+        // Add Place now lives in Explore's floating button; the footer only handles "load more".
+        messageLabel.isHidden = true
+        addButton.isHidden = true
+        addButton.accessibilityIdentifier = nil
+
         let stack = UIStackView(arrangedSubviews: [loadMoreButton, spinner, messageLabel, addButton])
         stack.axis = .vertical
         stack.alignment = .center
