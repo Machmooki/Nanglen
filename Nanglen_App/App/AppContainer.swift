@@ -80,7 +80,9 @@ final class AppContainer {
         }
 
         let backend: NanglenBackend
-        if !arguments.contains("-NanglenDemoBackend"), let config = SupabaseConfiguration.load() {
+        // Unit-test host runs and UI tests never touch the real project (no stray anonymous users).
+        let isTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        if !arguments.contains("-NanglenDemoBackend"), !isTesting, let config = SupabaseConfiguration.load() {
             backend = SupabaseBackend(configuration: config)
         } else {
             let directory = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))?

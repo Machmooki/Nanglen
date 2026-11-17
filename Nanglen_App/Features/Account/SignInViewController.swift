@@ -133,10 +133,10 @@ final class SignInViewController: UIViewController {
         }
     }
 
-    /// One-time codes arrive as 6 digits; verify automatically when complete (AutoFill friendly).
+    /// One-time codes have `AppConfiguration.emailOTPLength` digits; verify automatically when complete (AutoFill friendly).
     private func autoSubmitIfComplete() {
         let digits = (codeTextField.text ?? "").filter(\.isNumber)
-        if digits.count == 6 { viewModel?.verify(code: digits) }
+        if digits.count == AppConfiguration.emailOTPLength { viewModel?.verify(code: digits) }
     }
 
     @IBAction private func sendCodeTapped(_ sender: UIButton?) {

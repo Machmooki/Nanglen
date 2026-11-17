@@ -14,6 +14,9 @@ max_rows = 100
 port = 54322
 major_version = 17
 
+# seed.sql is DEMO DATA for the LOCAL stack only (`supabase start` / `supabase db reset`).
+# - `supabase db push` never runs it (unless you pass --include-seed — don't, for production).
+# - `supabase db reset --linked` WIPES the remote database AND runs this seed. Never use it on production.
 [db.seed]
 enabled = true
 sql_paths = ["./seed.sql"]

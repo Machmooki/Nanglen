@@ -10,3 +10,8 @@ Nanglen_App/Resources/Supabase.plist
 supabase/.env
 supabase/.temp/
 supabase/.branches/
+
+# Pre-production scripts output (contains user data)
+supabase/scripts/.preprod_paths.json
+backup_preprod.sql
+*.dump.sql

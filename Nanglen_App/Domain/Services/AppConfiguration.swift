@@ -22,6 +22,9 @@ nonisolated struct AppConfiguration: Sendable {
     var submissionMaxPhotos = 5
     var mediaMaxBytes = 5 * 1_024 * 1_024
     var ranker = VenueRanker()
+    /// Must match Supabase Auth → Email → "Email OTP Length" (supabase/config.toml `otp_length`).
+    /// The sign-in screen auto-submits when this many digits are entered.
+    static let emailOTPLength = 6
 
     static let standard = AppConfiguration()
 }

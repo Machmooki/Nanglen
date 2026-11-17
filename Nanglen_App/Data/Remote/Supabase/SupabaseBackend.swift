@@ -9,16 +9,53 @@ nonisolated struct SupabaseConfiguration: Sendable {
     var anonKey: String
 
     static func load(bundle: Bundle = .main, environment: [String: String] = ProcessInfo.processInfo.environment) -> SupabaseConfiguration? {
-        if let raw = environment["SUPABASE_URL"], let url = URL(string: raw), let key = environment["SUPABASE_ANON_KEY"], !key.isEmpty {
-            return SupabaseConfiguration(url: url, anonKey: key)
+        if let raw = environment["SUPABASE_URL"], let key = environment["SUPABASE_ANON_KEY"] {
+            return make(rawURL: raw, rawKey: key)
         }
         guard let fileURL = bundle.url(forResource: "Supabase", withExtension: "plist"),
               let data = try? Data(contentsOf: fileURL),
               let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
-              let rawURL = plist["SUPABASE_URL"] as? String, let url = URL(string: rawURL), url.host != nil,
-              let key = plist["SUPABASE_ANON_KEY"] as? String, !key.isEmpty, !key.hasPrefix("YOUR_")
+              let rawURL = plist["SUPABASE_URL"] as? String,
+              let rawKey = plist["SUPABASE_ANON_KEY"] as? String
+        else { return nil }
+        return make(rawURL: rawURL, rawKey: rawKey)
+    }
+
+    /// Validates values and rejects placeholders and secret keys.
+    static func make(rawURL: String, rawKey: String) -> SupabaseConfiguration? {
+        let key = rawKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = normalizedBaseURL(rawURL), !key.isEmpty, !key.hasPrefix("YOUR_"),
+              // A secret / service_role key must never ship in the app.
+              !key.hasPrefix("sb_secret_"), !isServiceRoleJWT(key)
         else { return nil }
         return SupabaseConfiguration(url: url, anonKey: key)
+    }
+
+    /// Accepts "https://<ref>.supabase.co", tolerating a trailing "/" or a pasted "/rest/v1/" suffix.
+    /// Requires https (http only for localhost development).
+    static func normalizedBaseURL(_ raw: String) -> URL? {
+        var value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        while value.hasSuffix("/") { value.removeLast() }
+        for suffix in ["/rest/v1", "/auth/v1", "/storage/v1"] where value.lowercased().hasSuffix(suffix) {
+            value.removeLast(suffix.count)
+        }
+        guard !value.contains("YOUR_"), let components = URLComponents(string: value),
+              let host = components.host, !host.isEmpty,
+              components.path.isEmpty, components.query == nil, components.user == nil
+        else { return nil }
+        let isLocal = host == "localhost" || host == "127.0.0.1"
+        guard components.scheme == "https" || (components.scheme == "http" && isLocal) else { return nil }
+        return components.url
+    }
+
+    private static func isServiceRoleJWT(_ key: String) -> Bool {
+        let parts = key.split(separator: ".")
+        guard parts.count == 3 else { return false }
+        var payload = String(parts[1]).replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        while payload.count % 4 != 0 { payload += "=" }
+        guard let data = Data(base64Encoded: payload),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return false }
+        return (json["role"] as? String) == "service_role"
     }
 }
 
@@ -170,7 +207,7 @@ final class SupabaseBackend: NanglenBackend {
         try await rpcVoid("update_my_display_name", ["p_display_name": name])
     }
 
-    private struct AvatarChange: Decodable, Sendable {
+    private nonisolated struct AvatarChange: Decodable, Sendable {
         var previous_path: String?
     }
 

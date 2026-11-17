@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Copy to Nanglen_App/Resources/Supabase.plist (git-ignored) and fill in your project values.
-  Use the anon / publishable key ONLY. Never put the service_role key in the app.
-  Without this file the app runs against the local, clearly-labelled Demo backend.
+  Template. Copy to Nanglen_App/Resources/Supabase.plist (git-ignored) and fill in your project values:
+    SUPABASE_URL       the BASE project URL, e.g. https://abcdefghijklmnop.supabase.co  (no /rest/v1/ or other path)
+    SUPABASE_ANON_KEY  the publishable key (sb_publishable_…) or legacy anon key — from
+                       `supabase projects api-keys` or Dashboard → Project Settings → API Keys.
+  NEVER put the service_role / secret key in the app.
+  Debug builds without Resources/Supabase.plist run against the local, clearly-labelled Demo backend.
 -->
 <plist version="1.0">
 <dict>
     <key>SUPABASE_URL</key>
-    <string>https://tuufgzbgldtkwaqqxyur.supabase.co/rest/v1/</string>
+    <string>https://YOUR_PROJECT_REF.supabase.co</string>
     <key>SUPABASE_ANON_KEY</key>
-    <string>sb_publishable_7a6oNqs0Mtzgfm0KxWZhZw_qkM1BYpF</string>
+    <string>YOUR_PUBLISHABLE_KEY</string>
 </dict>
 </plist>

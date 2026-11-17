@@ -147,3 +147,31 @@ struct ValidatorTests {
         #expect(!BackendError.network.requiresFreshVerification)
     }
 }
+
+@MainActor
+struct SupabaseConfigurationTests {
+    @Test func baseURLIsNormalized() {
+        #expect(SupabaseConfiguration.normalizedBaseURL("https://abc.supabase.co")?.absoluteString == "https://abc.supabase.co")
+        #expect(SupabaseConfiguration.normalizedBaseURL(" https://abc.supabase.co/ ")?.absoluteString == "https://abc.supabase.co")
+        #expect(SupabaseConfiguration.normalizedBaseURL("https://abc.supabase.co/rest/v1/")?.absoluteString == "https://abc.supabase.co")
+        #expect(SupabaseConfiguration.normalizedBaseURL("http://localhost:54321")?.absoluteString == "http://localhost:54321")
+    }
+
+    @Test func badURLsAreRejected() {
+        #expect(SupabaseConfiguration.normalizedBaseURL("http://abc.supabase.co") == nil, "plain http only for localhost")
+        #expect(SupabaseConfiguration.normalizedBaseURL("https://YOUR_PROJECT_REF.supabase.co") == nil)
+        #expect(SupabaseConfiguration.normalizedBaseURL("https://abc.supabase.co/other/path") == nil)
+        #expect(SupabaseConfiguration.normalizedBaseURL("not a url") == nil)
+    }
+
+    @Test func placeholderAndSecretKeysAreRejected() {
+        #expect(SupabaseConfiguration.make(rawURL: "https://abc.supabase.co", rawKey: "sb_publishable_abc") != nil)
+        #expect(SupabaseConfiguration.make(rawURL: "https://abc.supabase.co", rawKey: "YOUR_PUBLISHABLE_KEY") == nil)
+        #expect(SupabaseConfiguration.make(rawURL: "https://abc.supabase.co", rawKey: "sb_secret_abc") == nil)
+        // {"role":"service_role"} as a JWT payload
+        let serviceRole = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.sig"
+        #expect(SupabaseConfiguration.make(rawURL: "https://abc.supabase.co", rawKey: serviceRole) == nil)
+        let anon = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.sig"
+        #expect(SupabaseConfiguration.make(rawURL: "https://abc.supabase.co", rawKey: anon) != nil)
+    }
+}
