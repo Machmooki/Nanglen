@@ -82,9 +82,16 @@ final class AppContainer {
         let backend: NanglenBackend
         // Unit-test host runs and UI tests never touch the real project (no stray anonymous users).
         let isTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        if !arguments.contains("-NanglenDemoBackend"), !isTesting, let config = SupabaseConfiguration.load() {
+        let config = SupabaseConfiguration.load()
+        if !arguments.contains("-NanglenDemoBackend"), !isTesting, let config {
+            logger.notice("Backend: Supabase (\(config.url.host ?? "?", privacy: .public))")
             backend = SupabaseBackend(configuration: config)
         } else {
+            let reason = arguments.contains("-NanglenDemoBackend") ? "-NanglenDemoBackend launch argument"
+                : isTesting ? "running under XCTest"
+                : Bundle.main.url(forResource: "Supabase", withExtension: "plist") == nil ? "Supabase.plist not in app bundle"
+                : "Supabase.plist values invalid (URL must be https://<ref>.supabase.co, key must be publishable)"
+            logger.notice("Backend: Demo — \(reason, privacy: .public)")
             let directory = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))?
                 .appendingPathComponent("DemoBackend", isDirectory: true)
             backend = DemoBackend(directory: directory, reset: reset)

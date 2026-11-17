@@ -17,6 +17,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "807095AA30A064EB0022E40B"
                BuildableName = "Nanglen_App.app"
+               BlueprintName = "Nanglen_App"
                ReferencedContainer = "container:Nanglen_App.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -68,6 +69,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "807095AA30A064EB0022E40B"
             BuildableName = "Nanglen_App.app"
+            BlueprintName = "Nanglen_App"
             ReferencedContainer = "container:Nanglen_App.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -84,6 +86,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "807095AA30A064EB0022E40B"
             BuildableName = "Nanglen_App.app"
+            BlueprintName = "Nanglen_App"
             ReferencedContainer = "container:Nanglen_App.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

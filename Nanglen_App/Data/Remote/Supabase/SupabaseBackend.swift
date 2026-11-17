@@ -1,5 +1,6 @@
 import Foundation
 import Supabase
+import os
 
 /// Reads `Supabase.plist` (URL + anon/publishable key) from the app bundle, or the
 /// `SUPABASE_URL` / `SUPABASE_ANON_KEY` environment variables. The anon key is public by design;
@@ -101,6 +102,16 @@ final class SupabaseBackend: NanglenBackend {
         }
     }
 
+    nonisolated private static let authLogger = Logger(subsystem: "Mach.Nanglen-App", category: "Auth")
+
+    /// GoTrue answers 500 `unexpected_failure` with e.g. "Error sending email change email" or the raw
+    /// SMTP reply ("535 5.7.8 Username and Password not accepted") when the code email can't be sent.
+    static func isEmailDeliveryFailure(_ message: String) -> Bool {
+        let lower = message.lowercased()
+        return lower.contains("error sending") || lower.contains("smtp") || lower.contains("5.7.8")
+            || lower.contains("username and password not accepted")
+    }
+
     static func map(_ error: Error) -> Error {
         if let error = error as? BackendError { return error }
         if let error = error as? PostgrestError { return BackendError.fromServerMessage(error.message) }
@@ -112,6 +123,10 @@ final class SupabaseBackend: NanglenBackend {
                 if code == .userNotFound || code == .otpDisabled { return BackendError.notFound }
                 if code == .overEmailSendRateLimit { return BackendError.rateLimited }
                 if code == .otpExpired || message.localizedCaseInsensitiveContains("token") { return BackendError.invalidOTP }
+                // Shown in the Xcode console so a server-side cause (e.g. SMTP login refused) isn't hidden
+                // behind the generic message.
+                authLogger.error("Auth API error \(code.rawValue, privacy: .public): \(message)")
+                if isEmailDeliveryFailure(message) { return BackendError.emailNotSent }
                 return BackendError.server(message)
             }
             if case .sessionMissing = error { return BackendError.notAuthenticated }

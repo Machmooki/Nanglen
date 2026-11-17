@@ -24,6 +24,8 @@ nonisolated enum BackendError: Error, Hashable, Sendable {
     /// Active Admins must be revoked before their account can be deleted.
     case deletionBlocked
     case invalidOTP
+    /// The auth server couldn't send the code email (SMTP rejected the login, provider down, ...).
+    case emailNotSent
     case network
     case server(String)
 

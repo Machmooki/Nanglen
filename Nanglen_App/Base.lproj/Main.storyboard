@@ -1626,7 +1626,7 @@
     <inferredMetricsTieBreakers>
         <segue reference="exp-sg-add"/>
         <segue reference="sg-0079"/>
-        <segue reference="exp-sg-detail"/>
+        <segue reference="sav-sg-detail"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="arrow.clockwise" catalog="system" width="107" height="128"/>

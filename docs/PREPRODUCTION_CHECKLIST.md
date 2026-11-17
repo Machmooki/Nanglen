@@ -63,6 +63,12 @@ The cleanup SQL was **not executed**, even as a dry run, because it contains DEL
 
 SMTP credentials live only in the dashboard (they're remote-only and deliberately not in `config.toml`). Gmail SMTP sends ≈500 emails/day; move to an own domain + Brevo/Resend before a larger launch.
 
+**Troubleshooting "Send code" (2026-11-17).** Auth logs showed `PUT /user` → 500 `535 5.7.8 Username and Password not accepted` (Gmail refused the SMTP login), then 429 `over_email_send_rate_limit`. The Swift SDK retries a 500 on `PUT` twice, so each tap made 3 SMTP attempts and quickly used up the hourly email quota. Fix: create a new App Password on the **sender** Gmail account (2-Step Verification on), paste it into Dashboard → Authentication → Emails → SMTP Settings → Password, and save. Then wait for the quota to reset, or raise it under Authentication → Rate Limits. The app now shows "We couldn't send the code email…" for this case and logs the raw Auth error to the Xcode console (category `Auth`). To read the logs yourself:
+
+```bash
+supabase logs --remote --sql "select timestamp, event_message from logs where source = 'auth_logs' order by timestamp desc limit 40"
+```
+
 Not changed (exist on remote only, not declared locally): MFA TOTP enabled, pooler sizes, redirect URLs. `delete-account` is already deployed; redeploy with `supabase functions deploy delete-account --use-api` only if it changes.
 
 ## 6. First production Admin

@@ -174,4 +174,11 @@ struct SupabaseConfigurationTests {
         let anon = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.sig"
         #expect(SupabaseConfiguration.make(rawURL: "https://abc.supabase.co", rawKey: anon) != nil)
     }
+
+    @Test func smtpFailuresBecomeEmailNotSent() {
+        #expect(SupabaseBackend.isEmailDeliveryFailure("Error sending email change email"))
+        #expect(SupabaseBackend.isEmailDeliveryFailure("535 \"5.7.8 Username and Password not accepted."))
+        #expect(!SupabaseBackend.isEmailDeliveryFailure("Database error saving new user"))
+        #expect(BackendError.emailNotSent != .server(""))
+    }
 }

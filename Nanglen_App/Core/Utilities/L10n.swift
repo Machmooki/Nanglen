@@ -395,6 +395,7 @@ enum L10n {
             case .accountExists: String(localized: "This email already has an account. Sign in to it instead.")
             case .deletionBlocked: String(localized: "Administrator accounts can't be deleted in the app. Ask another admin to remove your access first.")
             case .invalidOTP: String(localized: "The code is incorrect or expired")
+            case .emailNotSent: String(localized: "We couldn't send the code email right now. Please try again in a few minutes.")
             case .network: String(localized: "Can't connect to the internet")
             case .server: L10n.Common.somethingWentWrong
             }
