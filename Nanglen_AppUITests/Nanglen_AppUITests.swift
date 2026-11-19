@@ -15,7 +15,7 @@ final class Nanglen_AppUITests: XCTestCase {
     @MainActor
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-NanglenResetData", "-NanglenDemoBackend"]
+        app.launchArguments = ["-NanglenResetData", "-NanglenDemoBackend", "-NanglenSkipSplash"]
         app.launch()
         return app
     }

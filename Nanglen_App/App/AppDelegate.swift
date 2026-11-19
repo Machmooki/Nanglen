@@ -12,13 +12,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Built once per process and shared by all scenes.
     private(set) lazy var container = AppContainer.live()
 
+    /// Launch work that runs in the background: finishes when both the session and the server config
+    /// are ready (or have failed). The splash screen waits for it, up to its own timeout.
+    private(set) var startupTask: Task<Void, Never>?
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Guest-first: restore the session or sign in anonymously. No sign-up screen, no location prompt.
         let session = container.session
-        Task { try? await session.start() }
+        let sessionStart = Task { try? await session.start() }
         // Server limits (private.app_settings). Cached values are already applied; this picks up edits.
         let remoteConfig = container.remoteConfig
-        Task { await remoteConfig.refresh() }
+        let configRefresh = Task { await remoteConfig.refresh() }
+        startupTask = Task {
+            _ = await sessionStart.value
+            await configRefresh.value
+        }
         return true
     }
 
