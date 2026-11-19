@@ -99,9 +99,14 @@ enum L10n {
         static var reset: String { String(localized: "Reset") }
         static var footnote: String { String(localized: "Averages come from verified-visit reviews. Ranking also considers the number of reviews. Paid listings get no special ranking.") }
         static var goodFor: String { String(localized: "Good for") }
-        static var goodForHint: String { String(localized: "Based on what visitors said. Pick up to 3.") }
+        static func goodForHint(_ max: Int) -> String { String(localized: "Based on what visitors said. Pick up to \(max).") }
+        static var goodForHintAny: String { String(localized: "Based on what visitors said. Pick as many as you like.") }
         static var reviewedOnly: String { String(localized: "Only places with reviews") }
-        static var tooManyTags: String { String(localized: "You can pick up to 3") }
+        static func tooManyTags(_ max: Int) -> String { String(localized: "You can pick up to \(max)") }
+        static var anyRating: String { String(localized: "Any rating") }
+        static func ratingAtLeastLong(_ value: String) -> String { String(localized: "\(value) stars & up") }
+        static var ratingClearHint: String { String(localized: "Tap the same star again to show any rating") }
+        static var distanceHint: String { String(localized: "Swipe up or down to change the search distance") }
         static var clearAll: String { String(localized: "Clear all") }
         static func ratingAtLeast(_ value: String) -> String { String(localized: "\(value)★ & up") }
         static func within(_ distance: String) -> String { String(localized: "Within \(distance)") }
@@ -139,7 +144,6 @@ enum L10n {
         static var sourceCommunity: String { String(localized: "Info from the person who suggested this place, checked by our team") }
         static var sourceBusiness: String { String(localized: "Info from the verified owner") }
         static var sourceCurated: String { String(localized: "Info from the Nanglen team") }
-        static var claim: String { String(localized: "Own this place? Claim ownership") }
         static var managedByYou: String { String(localized: "You manage this place") }
         static var report: String { String(localized: "Report review") }
         static var reportSent: String { String(localized: "Report sent. Our team will take a look.") }
@@ -174,10 +178,10 @@ enum L10n {
         static var rating: String { String(localized: "Overall rating") }
         static var ratingRequired: String { String(localized: "Choose a rating from 1 to 5 stars") }
         static var purpose: String { String(localized: "What did you come for?") }
-        static var tags: String { String(localized: "What stood out? (pick up to 3)") }
+        static var tags: String { String(localized: "What stood out?") }
         static var comment: String { String(localized: "Short comment") }
         static var commentPlaceholder: String { String(localized: "What should others know before coming?") }
-        static var photos: String { String(localized: "Photos (up to 3)") }
+        static func photos(_ max: Int) -> String { String(localized: "Photos (up to \(max))") }
         static var addPhoto: String { String(localized: "Add photo") }
         static var submit: String { String(localized: "Publish review") }
         static var submitting: String { String(localized: "Publishing…") }
@@ -189,7 +193,6 @@ enum L10n {
         static var draftRestored: String { String(localized: "Restored your unsent draft") }
         static var reverify: String { String(localized: "Your verification expired or was already used. Verify your location again before publishing.") }
         static func characters(_ count: Int, _ max: Int) -> String { String(localized: "\(count)/\(max)") }
-        static var tooManyTags: String { String(localized: "You can pick up to 3 tags") }
         static var verifyAgain: String { String(localized: "Verify location again") }
     }
 
@@ -225,7 +228,6 @@ enum L10n {
         static var registeredRequiredTitle: String { String(localized: "Members only") }
         static var registeredRequiredReview: String { String(localized: "Guests can read reviews, but writing one requires a verified email so reviews stay trustworthy.") }
         static var registeredRequiredSubmit: String { String(localized: "Verify your email to suggest a new place") }
-        static var registeredRequiredClaim: String { String(localized: "Verify your email to claim ownership") }
     }
 
     enum Submission {
@@ -243,7 +245,9 @@ enum L10n {
         static var website: String { String(localized: "Website or social (https://…)") }
         static var phone: String { String(localized: "Contact phone (optional)") }
         static var note: String { String(localized: "Note to the team (optional)") }
-        static var photos: String { String(localized: "Photos (up to 5)") }
+        static func photos(_ max: Int) -> String { String(localized: "Photos (up to \(max))") }
+        static func photosNotUpdated(_ count: Int) -> String { String(localized: "\(count) photo changes didn't go through. Everything else was sent.") }
+        static var moveToMyLocation: String { String(localized: "Move the map to my location") }
         static var submit: String { String(localized: "Submit for review") }
         static var resubmit: String { String(localized: "Resubmit for review") }
         static var submitted: String { String(localized: "Submitted · Waiting for review") }
@@ -275,29 +279,9 @@ enum L10n {
         static var withdrawn: String { String(localized: "Withdrawn") }
     }
 
-    enum Claim {
-        static var title: String { String(localized: "Verify ownership") }
-        static var intro: String { String(localized: "Our team checks your evidence before granting management access. Owners can't edit or delete user reviews.") }
-        static var businessName: String { String(localized: "Business name *") }
-        static var role: String { String(localized: "Role") }
-        static var owner: String { String(localized: "Owner") }
-        static var manager: String { String(localized: "Manager") }
-        static var editor: String { String(localized: "Editor") }
-        static var contact: String { String(localized: "Contact details (optional)") }
-        static var evidence: String { String(localized: "Evidence, e.g. business registration number or official page link") }
-        static var submit: String { String(localized: "Send request") }
-        static var submitted: String { String(localized: "Request sent · Waiting for review") }
-        static var myClaims: String { String(localized: "Ownership requests") }
-        static var pending: String { String(localized: "Pending review") }
-        static var approved: String { String(localized: "Approved") }
-        static var rejected: String { String(localized: "Rejected") }
-        static var withdrawn: String { String(localized: "Withdrawn") }
-    }
-
     enum Admin {
         static var title: String { String(localized: "Review queue") }
         static var submissions: String { String(localized: "New places") }
-        static var claims: String { String(localized: "Ownership claims") }
         static var flagged: String { String(localized: "Reported reviews") }
         static var empty: String { String(localized: "Nothing waiting for review") }
         static var approve: String { String(localized: "Approve") }
@@ -332,6 +316,13 @@ enum L10n {
 
     enum Profile {
         static var title: String { String(localized: "Profile") }
+        static var roleOwner: String { String(localized: "Owner") }
+        static var roleManager: String { String(localized: "Manager") }
+        static var roleEditor: String { String(localized: "Editor") }
+        static var tapToVerify: String { String(localized: "Tap to verify your email · Free") }
+        static var tapToVerifyHint: String { String(localized: "Opens email verification") }
+        static var tapToEdit: String { String(localized: "Tap to change your photo or name") }
+        static var tapToEditHint: String { String(localized: "Shows options to change your photo or display name") }
         static var registered: String { String(localized: "Member · Email verified") }
         static var notVerified: String { String(localized: "Email not verified") }
         static var admin: String { String(localized: "Administrator") }
@@ -375,6 +366,14 @@ enum L10n {
         static var privacy: String { String(localized: "We use your location only when searching and verifying a visit. We don't store your travel history.") }
     }
 
+    enum PhotoSource {
+        static var title: String { String(localized: "Add photo") }
+        static var camera: String { String(localized: "Take Photo") }
+        static var library: String { String(localized: "Choose from Library") }
+        static var cameraDenied: String { String(localized: "Camera access is off. Turn it on in Settings to take photos.") }
+        static func viewerTitle(_ index: Int, _ total: Int) -> String { String(localized: "\(index) of \(total)") }
+    }
+
     enum Errors {
         static func message(for error: BackendError) -> String {
             switch error {
@@ -404,8 +403,8 @@ enum L10n {
         static func inputMessage(_ code: String) -> String {
             switch code {
             case "invalid_rating": L10n.Review.ratingRequired
-            case "too_many_tags": L10n.Review.tooManyTags
-            case "body_too_long": String(localized: "Comment is longer than 500 characters")
+            case "too_many_tags": String(localized: "Too many tags selected")
+            case "body_too_long": String(localized: "Comment is too long")
             case "name_required": L10n.Submission.nameRequired
             case "category_required": L10n.Submission.categoryRequired
             case "invalid_coordinate": L10n.Submission.locationRequired
@@ -414,7 +413,6 @@ enum L10n {
             case "invalid_email": L10n.Account.invalidEmail
             case "reserved_display_name": String(localized: "That name is reserved. Please choose another.")
             case "invalid_display_name": L10n.Profile.renameRules
-            case "claim_already_pending": String(localized: "You already have a pending request for this place")
             case "cannot_flag_own_review": String(localized: "You can't report your own review")
             case "file_too_large": String(localized: "File is larger than 5 MB")
             case "too_many_photos": String(localized: "Too many photos")

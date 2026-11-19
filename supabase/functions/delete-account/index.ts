@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   const avatarPath = profile.data?.avatar_path as string | null | undefined;
   if (avatarPath) await admin.storage.from("avatars").remove([avatarPath]);
 
-  // Cascades: profile, favorites, reviews + revisions, submissions, claims, memberships, verifications.
+  // Cascades: profile, favorites, reviews + revisions, submissions, memberships, verifications.
   const { error } = await admin.auth.admin.deleteUser(uid);
   if (error) {
     return new Response(JSON.stringify({ error: "delete_failed" }), { status: 500, headers: cors });

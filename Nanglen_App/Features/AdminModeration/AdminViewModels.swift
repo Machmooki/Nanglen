@@ -2,12 +2,11 @@ import Foundation
 
 /// Admin queue. Visible only for server-authorized Admins; every action is re-authorized server-side.
 final class AdminQueueViewModel {
-    enum Tab: Int, CaseIterable { case submissions, claims, flagged }
+    enum Tab: Int, CaseIterable { case submissions, flagged }
 
     struct State: Equatable {
         var tab: Tab = .submissions
         var submissions: [AdminSubmissionRow] = []
-        var claims: [AdminClaimRow] = []
         var flagged: [AdminFlaggedReview] = []
         var isLoading = false
         var errorMessage: String?
@@ -39,24 +38,11 @@ final class AdminQueueViewModel {
             do {
                 switch state.tab {
                 case .submissions: state.submissions = try await admin.submissions()
-                case .claims: state.claims = try await admin.pendingClaims()
                 case .flagged: state.flagged = try await admin.flaggedReviews()
                 }
                 state.errorMessage = nil
             } catch {
                 state.errorMessage = L10n.Errors.message(for: error)
-            }
-        }
-    }
-
-    func decideClaim(_ claim: AdminClaimRow, approve: Bool, reason: String?) {
-        Task {
-            do {
-                try await admin.decideClaim(id: claim.id, approve: approve, reason: reason)
-                onMessage?(L10n.Admin.done)
-                notifier.publish(.moderationChanged)
-            } catch {
-                onMessage?(L10n.Errors.message(for: error))
             }
         }
     }

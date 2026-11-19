@@ -83,6 +83,13 @@ nonisolated struct VenueSubmission: Identifiable, Hashable, Sendable {
     var updatedAt: Date
 }
 
+/// A photo already attached to a submission (bucket `venue-submission-media`).
+nonisolated struct SubmissionPhoto: Identifiable, Hashable, Sendable {
+    var id: UUID
+    var storagePath: String
+    var displayOrder: Int
+}
+
 nonisolated struct DuplicateCandidate: Hashable, Sendable {
     var venueID: UUID
     var name: String
@@ -98,37 +105,12 @@ nonisolated enum SubmissionReceipt: Hashable, Sendable {
     case alreadyListed(venueID: UUID)
 }
 
-// MARK: - Business claims
+// MARK: - Business memberships
 
-nonisolated enum ClaimStatus: String, Codable, Hashable, Sendable {
-    case pendingReview = "pending_review"
-    case approved
-    case rejected
-    case withdrawn
-}
-
-nonisolated enum ClaimantRole: String, CaseIterable, Hashable, Sendable {
+/// Role in a business account (`public.membership_role`). Memberships are granted by Admins with SQL;
+/// the in-app ownership claim flow was removed on 2026-11-19.
+nonisolated enum MembershipRole: String, CaseIterable, Hashable, Sendable {
     case owner, manager, editor
-}
-
-nonisolated struct VenueClaimDraft: Hashable, Sendable {
-    var clientRequestID = UUID()
-    var venueID: UUID
-    var businessName: String = ""
-    var role: ClaimantRole = .owner
-    var contactNote: String = ""
-    var evidenceNote: String = ""
-}
-
-nonisolated struct VenueClaim: Identifiable, Hashable, Sendable {
-    var id: UUID
-    var venueID: UUID
-    var venueName: String?
-    var businessName: String
-    var role: ClaimantRole
-    var status: ClaimStatus
-    var decisionReason: String?
-    var createdAt: Date
 }
 
 // MARK: - Admin
@@ -162,18 +144,6 @@ nonisolated struct AdminSubmissionDetail: Hashable, Sendable {
 nonisolated struct ModerationHistoryItem: Hashable, Sendable {
     var action: String
     var reason: String?
-    var createdAt: Date
-}
-
-nonisolated struct AdminClaimRow: Identifiable, Hashable, Sendable {
-    var id: UUID
-    var venueID: UUID
-    var venueName: String
-    var businessName: String
-    var role: ClaimantRole
-    var claimantName: String
-    var contactNote: String?
-    var evidenceNote: String?
     var createdAt: Date
 }
 

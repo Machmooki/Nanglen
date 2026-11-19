@@ -130,7 +130,7 @@ struct ValidatorTests {
     @Test func filterSummaryAndRemoval() {
         var filter = VenueFilter()
         filter.tags = ["quiet", "study_friendly"]
-        filter.minimumRating = .four
+        filter.minimumRating = 4
         filter.reviewedOnly = true
         #expect(filter.activeCount == 4)
         #expect(filter.activeItems == [.tag("study_friendly"), .tag("quiet"), .minimumRating, .reviewedOnly])

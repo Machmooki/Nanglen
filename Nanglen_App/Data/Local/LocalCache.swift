@@ -148,13 +148,30 @@ nonisolated final class LocalCache: Sendable {
         }
     }
 
+    // MARK: Remote config
+
+    static let remoteConfigKey = "remote_config.v1"
+
+    /// Synchronous on purpose: read once at launch, before the first screen, so it already uses server limits.
+    func cachedRemoteConfig() -> RemoteConfigValues? {
+        let data = try? writer.read { db in
+            try Data.fetchOne(db, sql: "SELECT payload FROM local_drafts WHERE key = ?", arguments: [Self.remoteConfigKey])
+        }
+        return data.flatMap { try? Self.decoder.decode(RemoteConfigValues.self, from: $0) }
+    }
+
+    func storeRemoteConfig(_ values: RemoteConfigValues) async throws {
+        try await saveDraft(values, key: Self.remoteConfigKey)
+    }
+
     // MARK: Maintenance
 
+    /// Clears cached content and drafts. The server config is kept: it isn't personal data and the app needs it offline.
     func clearAll() async throws {
         try await writer.write { db in
             try db.execute(sql: "DELETE FROM cached_venues")
             try db.execute(sql: "DELETE FROM cached_favorites")
-            try db.execute(sql: "DELETE FROM local_drafts")
+            try db.execute(sql: "DELETE FROM local_drafts WHERE key <> ?", arguments: [Self.remoteConfigKey])
         }
     }
 

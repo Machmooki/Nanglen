@@ -2,9 +2,20 @@ import UIKit
 
 /// Add Place: creates a `venue_submission` (pending Admin review) — never a public venue.
 final class AddPlaceViewModel {
+    /// A photo already on the server (edit mode), with its signed URL once resolved.
+    struct ExistingPhoto: Equatable {
+        var photo: SubmissionPhoto
+        var url: URL?
+    }
+
     struct State: Equatable {
         var draft: VenueSubmissionDraft
+        /// New photos picked on this device (uploaded on submit / resubmit).
         var photos: [UIImage] = []
+        /// Edit mode: photos already attached that the person keeps.
+        var existingPhotos: [ExistingPhoto] = []
+        /// Edit mode: photos the person removed (deleted on resubmit, before new uploads).
+        var removedPhotoIDs: [UUID] = []
         var isSubmitting = false
         var issues: [SubmissionValidator.Issue] = []
         var errorMessage: String?
@@ -19,13 +30,21 @@ final class AddPlaceViewModel {
 
     enum Outcome: Equatable {
         case submitted(duplicates: [DuplicateCandidate])
-        case resubmitted
+        case resubmitted(failedPhotos: Int)
         case alreadyListed(venueID: UUID)
         case needsRegistration
     }
 
+    enum LocateResult: Equatable {
+        case moved(GeoPoint)
+        case denied
+        case unavailable
+    }
+
     var onChange: ((State) -> Void)?
     var onOutcome: ((Outcome) -> Void)?
+    /// Asks the screen to move the map (restored draft, or the person's location when adding a new place).
+    var onMoveMap: ((GeoPoint) -> Void)?
     private(set) var state: State { didSet { if state != oldValue { onChange?(state) } } }
 
     let editing: VenueSubmission?
@@ -62,15 +81,61 @@ final class AddPlaceViewModel {
 
     var isRegistered: Bool { session.capabilities?.isRegistered == true }
 
+    var isLocationAuthorized: Bool { location.authorization == .authorized }
+
     func start() {
-        guard editing == nil else { return }
+        if let editing {
+            Task { await loadExistingPhotos(editing.id) }
+            return
+        }
         Task {
-            if let saved = await service.savedDraft() { state.draft = saved }
+            if let saved = await service.savedDraft() {
+                state.draft = saved
+                if let point = saved.coordinate { onMoveMap?(point) }
+            }
+            // New place: open the map where the person is, if location is already allowed (no prompt here).
             if state.draft.coordinate == nil, location.authorization == .authorized,
                let reading = try? await location.requestCurrentLocation() {
                 state.draft.coordinate = reading.point
+                onMoveMap?(reading.point)
             }
             refreshIssues()
+        }
+    }
+
+    /// "My location" button: asks When-In-Use permission if needed, then moves the pin to the person.
+    func locateMe() async -> LocateResult {
+        var status = location.authorization
+        if status == .notDetermined { status = await location.requestAuthorization() }
+        switch status {
+        case .authorized: break
+        case .denied, .restricted: return .denied
+        case .notDetermined: return .unavailable
+        }
+        guard let reading = try? await location.requestCurrentLocation() else { return .unavailable }
+        setPin(reading.point)
+        return .moved(reading.point)
+    }
+
+    // MARK: Photos
+
+    /// Photos can be changed when adding a place, or while an Admin asks for changes.
+    var canEditPhotos: Bool { editing == nil || editing?.status == .needsChanges }
+
+    var photoCount: Int { state.existingPhotos.count + state.photos.count }
+    var remainingPhotoSlots: Int { max(0, configuration.submissionMaxPhotos - photoCount) }
+
+    /// Existing photos first, then new ones (same order as `removePhoto(at:)`).
+    var photoItems: [PhotoStripView.Item] {
+        state.existingPhotos.map { .remote($0.url) } + state.photos.map { .local($0) }
+    }
+
+    private func loadExistingPhotos(_ submissionID: UUID) async {
+        guard let photos = try? await service.photos(submissionID: submissionID), !photos.isEmpty else { return }
+        state.existingPhotos = photos.map { ExistingPhoto(photo: $0, url: nil) }
+        let urls = await venues.signedURLs(paths: photos.map(\.storagePath), bucket: .venue)
+        for index in state.existingPhotos.indices {
+            state.existingPhotos[index].url = urls[state.existingPhotos[index].photo.storagePath]
         }
     }
 
@@ -119,14 +184,19 @@ final class AddPlaceViewModel {
         return candidates.prefix(25).map { CandidateRow(candidate: $0, existingVenueID: matches[$0.externalPlaceID]) }
     }
 
-    func addPhoto(_ image: UIImage) {
-        guard state.photos.count < configuration.submissionMaxPhotos else { return }
-        state.photos.append(image)
+    func addPhotos(_ images: [UIImage]) {
+        state.photos += images.prefix(remainingPhotoSlots)
     }
 
     func removePhoto(at index: Int) {
-        guard state.photos.indices.contains(index) else { return }
-        state.photos.remove(at: index)
+        if state.existingPhotos.indices.contains(index) {
+            let removed = state.existingPhotos.remove(at: index)
+            state.removedPhotoIDs.append(removed.photo.id)
+            return
+        }
+        let localIndex = index - state.existingPhotos.count
+        guard state.photos.indices.contains(localIndex) else { return }
+        state.photos.remove(at: localIndex)
     }
 
     private func refreshIssues() {
@@ -151,8 +221,14 @@ final class AddPlaceViewModel {
             defer { state.isSubmitting = false }
             do {
                 if let editing {
-                    try await service.resubmit(id: editing.id, draft: draft)
-                    onOutcome?(.resubmitted)
+                    // Order: remove photos → upload new ones → resubmit. Photo failures are reported, not fatal.
+                    let failed = try await service.resubmit(
+                        id: editing.id, draft: draft,
+                        removingPhotos: canEditPhotos ? state.removedPhotoIDs : [],
+                        addingPhotos: canEditPhotos ? photos : [],
+                        keptPhotoCount: state.existingPhotos.count)
+                    state.removedPhotoIDs = []
+                    onOutcome?(.resubmitted(failedPhotos: failed))
                     return
                 }
                 let outcome = try await service.submit(draft, photos: photos)

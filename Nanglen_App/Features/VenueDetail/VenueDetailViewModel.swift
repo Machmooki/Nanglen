@@ -98,7 +98,8 @@ final class VenueDetailViewModel {
         guard let page = try? await venues.reviews(venueID: state.venue.id, sort: state.reviewSort, offset: offset, limit: pageSize) else { return }
         state.reviews = reset ? page.reviews : state.reviews + page.reviews.filter { new in !state.reviews.contains { $0.id == new.id } }
         state.hasMoreReviews = page.hasMore
-        let reviewPhotos = page.reviews.flatMap(\.photoPaths)
+        // Sign every photo of every review on this page (not only the first few) that isn't signed yet.
+        let reviewPhotos = Array(Set(page.reviews.flatMap(\.photoPaths)).filter { state.mediaURLs[$0] == nil })
         if !reviewPhotos.isEmpty {
             let urls = await venues.signedURLs(paths: reviewPhotos, bucket: .review)
             state.mediaURLs.merge(urls) { _, new in new }
@@ -133,8 +134,6 @@ final class VenueDetailViewModel {
         guard session.capabilities?.isRegistered == true else { return .needsRegistration }
         return .compose(existing: state.myReview)
     }
-
-    var canClaim: Bool { state.detail?.isManagedByMe == false }
 
     func openDirections() {
         venues.log("navigation_opened", venueID: state.venue.id)

@@ -83,9 +83,10 @@ final class ReviewComposerViewModel {
 
     func setBody(_ text: String) { state.draft.body = String(text.prefix(configuration.reviewMaxBodyLength)) }
 
-    func addPhoto(_ image: UIImage) {
-        guard state.photos.count < configuration.reviewMaxPhotos else { return }
-        state.photos.append(image)
+    var remainingPhotoSlots: Int { max(0, configuration.reviewMaxPhotos - state.photos.count) }
+
+    func addPhotos(_ images: [UIImage]) {
+        state.photos += images.prefix(remainingPhotoSlots)
     }
 
     func removePhoto(at index: Int) {
@@ -116,7 +117,7 @@ final class ReviewComposerViewModel {
                 var message = outcome.result.revisionNumber > 1 ? L10n.Review.updated : L10n.Review.published
                 if outcome.failedPhotos > 0 {
                     message += "\n" + L10n.Review.photosFailed(outcome.failedPhotos)
-                } else if !photos.isEmpty {
+                } else if !photos.isEmpty, !configuration.reviewMediaAutoApprove {
                     message += "\n" + L10n.Review.photosPending
                 }
                 onOutcome?(.published(message: message))

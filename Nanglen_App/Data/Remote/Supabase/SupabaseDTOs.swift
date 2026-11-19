@@ -104,15 +104,6 @@ nonisolated struct ResubmitParams: Encodable, Sendable {
     var p_submitter_note: String
 }
 
-nonisolated struct ClaimParams: Encodable, Sendable {
-    var p_client_request_id: UUID
-    var p_venue_id: UUID
-    var p_business_name: String
-    var p_claimant_role: String
-    var p_contact_note: String
-    var p_evidence_note: String
-}
-
 nonisolated struct ApproveParams: Encodable, Sendable {
     var p_submission_id: UUID
     var p_note: String?
@@ -128,12 +119,6 @@ nonisolated struct DuplicateParams: Encodable, Sendable {
     var p_submission_id: UUID
     var p_venue_id: UUID
     var p_reason: String
-}
-
-nonisolated struct ClaimDecisionParams: Encodable, Sendable {
-    var p_claim_id: UUID
-    var p_approve: Bool
-    var p_reason: String?
 }
 
 nonisolated struct ModerateParams: Encodable, Sendable {
@@ -254,6 +239,14 @@ nonisolated struct FavoriteDTO: Decodable, Sendable {
     var venue_id: UUID
 }
 
+nonisolated struct SubmissionMediaDTO: Decodable, Sendable {
+    var media_id: UUID
+    var storage_path: String
+    var display_order: Int
+
+    var model: SubmissionPhoto { SubmissionPhoto(id: media_id, storagePath: storage_path, displayOrder: display_order) }
+}
+
 nonisolated struct PublicConfigDTO: Decodable, Sendable {
     var visit_radius_m: Double
     var visit_max_accuracy_m: Double
@@ -332,27 +325,6 @@ nonisolated struct SubmissionDTO: Decodable, Sendable {
             status: SubmissionStatus(rawValue: status) ?? .pendingReview, revision: revision, decisionReason: decision_reason,
             duplicateOfVenueID: duplicate_of_venue_id, approvedVenueID: approved_venue_id,
             submittedAt: SupabaseBackend.date(submitted_at), updatedAt: SupabaseBackend.date(updated_at) ?? Date())
-    }
-}
-
-nonisolated struct ClaimReceiptDTO: Decodable, Sendable {
-    var claim_id: UUID
-    var status: String
-}
-
-nonisolated struct ClaimDTO: Decodable, Sendable {
-    var id: UUID
-    var venue_id: UUID
-    var business_name: String
-    var claimant_role: String
-    var status: String
-    var decision_reason: String?
-    var created_at: String
-
-    var model: VenueClaim {
-        VenueClaim(id: id, venueID: venue_id, venueName: nil, businessName: business_name,
-                   role: ClaimantRole(rawValue: claimant_role) ?? .owner, status: ClaimStatus(rawValue: status) ?? .pendingReview,
-                   decisionReason: decision_reason, createdAt: SupabaseBackend.date(created_at) ?? Date())
     }
 }
 
@@ -464,24 +436,6 @@ nonisolated struct AdminSubmissionDetailDTO: Decodable, Sendable {
             submitterApproved: submitter.approved_submissions, mediaPaths: media.map(\.storage_path),
             duplicates: duplicate_candidates.map(\.model),
             history: history.map { ModerationHistoryItem(action: $0.action, reason: $0.reason, createdAt: SupabaseBackend.date($0.created_at) ?? Date()) })
-    }
-}
-
-nonisolated struct AdminClaimDTO: Decodable, Sendable {
-    var id: UUID
-    var venue_id: UUID
-    var venue_name: String
-    var business_name: String
-    var claimant_role: String
-    var claimant_name: String
-    var contact_note: String?
-    var evidence_note: String?
-    var created_at: String
-
-    var model: AdminClaimRow {
-        AdminClaimRow(id: id, venueID: venue_id, venueName: venue_name, businessName: business_name,
-                      role: ClaimantRole(rawValue: claimant_role) ?? .owner, claimantName: claimant_name,
-                      contactNote: contact_note, evidenceNote: evidence_note, createdAt: SupabaseBackend.date(created_at) ?? Date())
     }
 }
 

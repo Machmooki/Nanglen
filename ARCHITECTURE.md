@@ -22,6 +22,7 @@ Providers: LocationManager (CoreLocation one-shot), MapKitPlaceSearchProvider (c
 - ViewControllers and ViewModels never touch Supabase or SQL. `AppContainer` is the only place that wires implementations.
 - Backend selection (`AppContainer.live()`): `Supabase.plist` or env vars → `SupabaseBackend`; otherwise `DemoBackend`. `-NanglenDemoBackend` forces Demo, `-NanglenResetData` resets the cache and demo data (UI tests).
 - Swift 6, default MainActor isolation. Models are `nonisolated` value types.
+- **Limits come from the server.** `RemoteConfigService` applies the last cached `get_public_config()` at launch, refreshes it in the background and merges it over `AppConfiguration` defaults (`AppContainer.configuration`). Change limits in Supabase `private.app_settings`; apps pick them up on next launch (see the header of `AppConfiguration.swift`).
 
 ## Storyboard
 
@@ -34,7 +35,6 @@ Providers: LocationManager (CoreLocation one-shot), MapKitPlaceSearchProvider (c
 | `ReviewComposerNavigationController` | `presentReviewComposer` |
 | `SignInNavigationController` | `presentSignIn` (Detail, Profile); instantiated from the composer and Add Place (email code: link, or sign in to an existing account) |
 | `AddPlaceNavigationController` | `presentAddPlace` (Explore, Profile); instantiated from My Submissions |
-| `ClaimNavigationController` | `presentClaim` |
 | `MySubmissionsViewController` | `showMySubmissions` |
 | `AdminQueueViewController` → `AdminSubmissionViewController` | `showAdminQueue` → `showAdminSubmission` |
 

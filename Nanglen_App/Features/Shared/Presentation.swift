@@ -130,32 +130,12 @@ extension SubmissionStatus {
     var pill: StatusPillModel { StatusPillModel(symbol: symbol, text: title, tone: tone, accessibilityLabel: title) }
 }
 
-extension ClaimStatus {
+extension MembershipRole {
     var title: String {
         switch self {
-        case .pendingReview: L10n.Claim.pending
-        case .approved: L10n.Claim.approved
-        case .rejected: L10n.Claim.rejected
-        case .withdrawn: L10n.Claim.withdrawn
-        }
-    }
-
-    var tone: StatusTone {
-        switch self {
-        case .pendingReview: .brand
-        case .approved: .good
-        case .rejected: .bad
-        case .withdrawn: .neutral
-        }
-    }
-}
-
-extension ClaimantRole {
-    var title: String {
-        switch self {
-        case .owner: L10n.Claim.owner
-        case .manager: L10n.Claim.manager
-        case .editor: L10n.Claim.editor
+        case .owner: L10n.Profile.roleOwner
+        case .manager: L10n.Profile.roleManager
+        case .editor: L10n.Profile.roleEditor
         }
     }
 }

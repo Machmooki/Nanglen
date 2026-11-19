@@ -420,7 +420,7 @@ final class ExploreViewController: UIViewController, AppContainerConfigurable {
             guard let navigation = segue.destination as? UINavigationController,
                   let filter = navigation.topViewController as? FilterViewController,
                   let viewModel else { return }
-            filter.configure(viewModel: FilterViewModel(filter: viewModel.state.filter)) { [weak viewModel] newFilter in
+            filter.configure(viewModel: FilterViewModel(filter: viewModel.state.filter, limits: container.configuration.filter)) { [weak viewModel] newFilter in
                 viewModel?.apply(newFilter)
             }
             if let sheet = navigation.sheetPresentationController {

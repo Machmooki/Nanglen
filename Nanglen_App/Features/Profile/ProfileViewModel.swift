@@ -4,7 +4,6 @@ import UIKit
 final class ProfileViewModel {
     struct State: Equatable {
         var capabilities: UserCapabilities?
-        var claims: [VenueClaim] = []
         var location: LocationAuthorization = .notDetermined
         var mode: BackendMode = .demo
         var errorMessage: String?
@@ -18,17 +17,15 @@ final class ProfileViewModel {
     private(set) var state = State() { didSet { if state != oldValue { onChange?(state) } } }
 
     private let session: SessionService
-    private let business: BusinessRepository
     private let venues: VenueRepository
     private let cache: LocalCache
     private var resolvedAvatarPath: String?
     private let location: LocationProviding
     private let notifier: DataChangeNotifier
 
-    init(session: SessionService, business: BusinessRepository, venues: VenueRepository, cache: LocalCache,
+    init(session: SessionService, venues: VenueRepository, cache: LocalCache,
          location: LocationProviding, notifier: DataChangeNotifier) {
         self.session = session
-        self.business = business
         self.venues = venues
         self.cache = cache
         self.location = location
@@ -54,11 +51,6 @@ final class ProfileViewModel {
             state.capabilities = session.capabilities
             state.errorMessage = nil
             await resolveAvatar()
-            if session.capabilities?.isRegistered == true {
-                state.claims = (try? await business.myClaims()) ?? []
-            } else {
-                state.claims = []
-            }
         } catch {
             state.capabilities = session.capabilities
             state.errorMessage = L10n.Errors.message(for: error)

@@ -98,26 +98,14 @@ final class DemoBackend: NanglenBackend {
     }
 
     nonisolated struct MediaRow: Codable, Hashable {
+        /// Optional so state saved before ids existed still decodes; filled in on load.
+        var id: UUID?
         var path: String
         var kind: String // "review" | "submission"
         var parentID: UUID
         var ownerID: UUID
         var status: String // pending | approved | rejected
         var venueID: UUID?
-    }
-
-    nonisolated struct ClaimRow: Codable, Hashable {
-        var id: UUID
-        var clientRequestID: UUID
-        var venueID: UUID
-        var requestedBy: UUID
-        var businessName: String
-        var role: String
-        var contactNote: String?
-        var evidenceNote: String?
-        var status: ClaimStatus
-        var decisionReason: String?
-        var createdAt: Date
     }
 
     nonisolated struct Membership: Codable, Hashable {
@@ -156,7 +144,6 @@ final class DemoBackend: NanglenBackend {
         var revisions: [RevisionRow] = []
         var media: [MediaRow] = []
         var favorites: [UUID: [UUID]] = [:]
-        var claims: [ClaimRow] = []
         var memberships: [Membership] = []
         var flags: [Flag] = []
         var audit: [AuditRow] = []
@@ -172,6 +159,8 @@ final class DemoBackend: NanglenBackend {
     private let mediaDirectory: URL?
     private let clock: () -> Date
     private let policy: VerificationPolicy
+    /// The Demo "server settings" (mirrors `private.app_settings`).
+    private let limits: AppConfiguration
     private let ranker: VenueRanker
     private let challengeTTL: TimeInterval = 120
     private let verificationTTL: TimeInterval = 900
@@ -180,9 +169,10 @@ final class DemoBackend: NanglenBackend {
     /// - Parameters:
     ///   - directory: where state and media are persisted; `nil` keeps everything in memory (tests).
     init(directory: URL?, reset: Bool = false, seed: Bool = true, clock: @escaping () -> Date = { Date() },
-         policy: VerificationPolicy = .default, ranker: VenueRanker = VenueRanker()) {
+         policy: VerificationPolicy = .default, limits: AppConfiguration = .standard, ranker: VenueRanker = VenueRanker()) {
         self.clock = clock
         self.policy = policy
+        self.limits = limits
         self.ranker = ranker
         if let directory {
             if reset { try? FileManager.default.removeItem(at: directory) }
@@ -196,9 +186,22 @@ final class DemoBackend: NanglenBackend {
         if let fileURL, let data = try? Data(contentsOf: fileURL),
            let decoded = try? JSONDecoder().decode(State.self, from: data) {
             state = decoded
+            migrateLoadedState()
         } else {
             state = State()
             if seed { applySeed() }
+        }
+    }
+
+    /// Mirrors server migrations for state saved by older builds.
+    private func migrateLoadedState() {
+        for index in state.media.indices where state.media[index].id == nil {
+            state.media[index].id = UUID()
+        }
+        if limits.reviewMediaAutoApprove {
+            for index in state.media.indices where state.media[index].kind == "review" && state.media[index].status == "pending" {
+                state.media[index].status = "approved"
+            }
         }
     }
 
@@ -361,7 +364,6 @@ final class DemoBackend: NanglenBackend {
         state.reviews.removeAll { reviewIDs.contains($0.id) }
         state.submissions.removeAll { submissionIDs.contains($0.id) }
         state.favorites[user.id] = nil
-        state.claims.removeAll { $0.requestedBy == user.id }
         state.memberships.removeAll { $0.userID == user.id }
         state.flags.removeAll { $0.userID == user.id }
         state.challenges.removeAll { $0.userID == user.id }
@@ -454,14 +456,14 @@ final class DemoBackend: NanglenBackend {
         } else if query.origin != nil {
             results = results.filter { ($0.distanceMeters ?? 0) <= query.radiusMeters }
         }
-        if let minimum = query.filter.minimumRating.value {
+        if let minimum = query.filter.minimumRating {
             results = results.filter { ($0.rating.average ?? 0) >= minimum }
         }
         if query.filter.reviewedOnly {
             results = results.filter(\.rating.hasReviews)
         }
         if !query.filter.tags.isEmpty {
-            guard query.filter.tags.count <= 5 else { throw BackendError.invalidInput("too_many_tags") }
+            guard query.filter.tags.count <= limits.filter.maxTags else { throw BackendError.invalidInput("too_many_tags") }
             guard query.filter.tags.allSatisfy({ ReviewTag.named($0) != nil }) else { throw BackendError.invalidInput("unknown_tag") }
             results = results.filter { venue in
                 let counts = Dictionary(uniqueKeysWithValues: tagCounts(venueID: venue.id).map { ($0.slug, $0.count) })
@@ -581,6 +583,19 @@ final class DemoBackend: NanglenBackend {
         save()
     }
 
+    // MARK: ConfigRemote
+
+    func publicConfig() async throws -> RemoteConfigValues {
+        RemoteConfigValues(
+            reviewBodyMaxChars: Double(limits.reviewMaxBodyLength), reviewMaxTags: Double(limits.reviewMaxTags),
+            reviewMaxPhotos: Double(limits.reviewMaxPhotos), reviewMediaAutoApprove: limits.reviewMediaAutoApprove,
+            submissionMaxPhotos: Double(limits.submissionMaxPhotos), mediaMaxBytes: Double(limits.mediaMaxBytes),
+            filterMaxTags: Double(limits.filter.maxTags), filterDistanceMinMeters: limits.filter.distanceMinMeters, filterDistanceMaxMeters: limits.filter.distanceMaxMeters,
+            filterDistanceStepMeters: limits.filter.distanceStepMeters, filterDistanceDefaultMeters: limits.filter.distanceDefaultMeters,
+            filterRatingStep: limits.filter.ratingStep, visitRadiusMeters: policy.radiusMeters,
+            visitMaxAccuracyMeters: policy.maxHorizontalAccuracy, visitMaxLocationAgeSeconds: policy.maxLocationAge)
+    }
+
     // MARK: ReviewRemote
 
     func verificationPolicy() async throws -> VerificationPolicy { policy }
@@ -652,7 +667,7 @@ final class DemoBackend: NanglenBackend {
                                           status: review.status, replayed: true)
         }
         try ReviewValidator.validate(rating: submission.rating, tags: submission.tags, body: submission.body ?? "",
-                                     maxTags: 3, maxBody: 500)
+                                     maxTags: limits.reviewMaxTags, maxBody: limits.reviewMaxBodyLength)
         guard submission.tags.allSatisfy({ ReviewTag.named($0) != nil }) else { throw BackendError.invalidInput("unknown_tag") }
 
         let now = clock()
@@ -694,11 +709,13 @@ final class DemoBackend: NanglenBackend {
     func uploadReviewPhoto(revisionID: UUID, photo: PhotoUpload) async throws {
         let user = try requireRegistered()
         guard state.revisions.contains(where: { $0.id == revisionID && $0.userID == user.id }) else { throw BackendError.notFound }
-        guard photo.data.count <= 5 * 1_024 * 1_024 else { throw BackendError.invalidInput("file_too_large") }
-        guard state.media.filter({ $0.parentID == revisionID }).count < 3 else { throw BackendError.invalidInput("too_many_photos") }
+        guard photo.data.count <= limits.mediaMaxBytes else { throw BackendError.invalidInput("file_too_large") }
+        guard state.media.filter({ $0.parentID == revisionID }).count < limits.reviewMaxPhotos else { throw BackendError.invalidInput("too_many_photos") }
         let path = "\(revisionID.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
         try writeMedia(photo.data, path: path)
-        state.media.append(MediaRow(path: path, kind: "review", parentID: revisionID, ownerID: user.id, status: "pending", venueID: nil))
+        // Post-moderation: visible right away unless the setting is off (Admin can still reject later).
+        state.media.append(MediaRow(id: UUID(), path: path, kind: "review", parentID: revisionID, ownerID: user.id,
+                                    status: limits.reviewMediaAutoApprove ? "approved" : "pending", venueID: nil))
         save()
     }
 
@@ -789,11 +806,32 @@ final class DemoBackend: NanglenBackend {
         guard state.submissions.contains(where: { $0.id == submissionID && $0.submittedBy == user.id && $0.status.canWithdraw }) else {
             throw BackendError.notFound
         }
-        guard photo.data.count <= 5 * 1_024 * 1_024 else { throw BackendError.invalidInput("file_too_large") }
-        guard state.media.filter({ $0.parentID == submissionID }).count < 5 else { throw BackendError.invalidInput("too_many_photos") }
+        guard photo.data.count <= limits.mediaMaxBytes else { throw BackendError.invalidInput("file_too_large") }
+        guard state.media.filter({ $0.parentID == submissionID }).count < limits.submissionMaxPhotos else { throw BackendError.invalidInput("too_many_photos") }
         let path = "\(submissionID.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
         try writeMedia(photo.data, path: path)
-        state.media.append(MediaRow(path: path, kind: "submission", parentID: submissionID, ownerID: user.id, status: "pending", venueID: nil))
+        state.media.append(MediaRow(id: UUID(), path: path, kind: "submission", parentID: submissionID, ownerID: user.id, status: "pending", venueID: nil))
+        save()
+    }
+
+    func submissionPhotos(submissionID: UUID) async throws -> [SubmissionPhoto] {
+        let user = try currentUser()
+        guard state.submissions.contains(where: { $0.id == submissionID && $0.submittedBy == user.id }) else { throw BackendError.notFound }
+        let rows = state.media.filter { $0.kind == "submission" && $0.parentID == submissionID }
+        return rows.enumerated().compactMap { position, row in
+            row.id.map { SubmissionPhoto(id: $0, storagePath: row.path, displayOrder: position) }
+        }
+    }
+
+    func removeSubmissionPhoto(id: UUID) async throws {
+        let user = try requireRegistered()
+        guard let index = state.media.firstIndex(where: { $0.id == id && $0.kind == "submission" }),
+              let submission = state.submissions.first(where: { $0.id == state.media[index].parentID && $0.submittedBy == user.id })
+        else { throw BackendError.notFound }
+        guard submission.status == .needsChanges else { throw BackendError.invalidStatusTransition }
+        let path = state.media[index].path
+        state.media.remove(at: index)
+        if let mediaDirectory { try? FileManager.default.removeItem(at: mediaDirectory.appendingPathComponent(path)) }
         save()
     }
 
@@ -814,37 +852,6 @@ final class DemoBackend: NanglenBackend {
             status: row.status, revision: row.revision, decisionReason: row.decisionReason,
             duplicateOfVenueID: row.duplicateOf, approvedVenueID: row.approvedVenueID,
             submittedAt: row.submittedAt, updatedAt: row.updatedAt)
-    }
-
-    // MARK: BusinessRemote
-
-    func requestClaim(_ draft: VenueClaimDraft) async throws -> ClaimStatus {
-        let user = try requireRegistered()
-        if let existing = state.claims.first(where: { $0.requestedBy == user.id && $0.clientRequestID == draft.clientRequestID }) {
-            return existing.status
-        }
-        guard state.venues.contains(where: { $0.id == draft.venueID }) else { throw BackendError.notFound }
-        let name = draft.businessName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard (1...120).contains(name.count) else { throw BackendError.invalidInput("name_required") }
-        guard !state.claims.contains(where: { $0.venueID == draft.venueID && $0.requestedBy == user.id && $0.status == .pendingReview }) else {
-            throw BackendError.invalidInput("claim_already_pending")
-        }
-        state.claims.append(ClaimRow(id: UUID(), clientRequestID: draft.clientRequestID, venueID: draft.venueID, requestedBy: user.id,
-                                     businessName: name, role: draft.role.rawValue,
-                                     contactNote: draft.contactNote.isEmpty ? nil : draft.contactNote,
-                                     evidenceNote: draft.evidenceNote.isEmpty ? nil : draft.evidenceNote,
-                                     status: .pendingReview, decisionReason: nil, createdAt: clock()))
-        save()
-        return .pendingReview
-    }
-
-    func myClaims() async throws -> [VenueClaim] {
-        let user = try currentUser()
-        return state.claims.filter { $0.requestedBy == user.id }.sorted { $0.createdAt > $1.createdAt }.map { claim in
-            VenueClaim(id: claim.id, venueID: claim.venueID, venueName: state.venues.first { $0.id == claim.venueID }?.name,
-                       businessName: claim.businessName, role: ClaimantRole(rawValue: claim.role) ?? .owner,
-                       status: claim.status, decisionReason: claim.decisionReason, createdAt: claim.createdAt)
-        }
     }
 
     // MARK: AdminRemote
@@ -932,39 +939,6 @@ final class DemoBackend: NanglenBackend {
             state.submissions[index].decisionReason = trimmed
         }
         state.submissions[index].updatedAt = now
-        save()
-    }
-
-    func adminPendingClaims() async throws -> [AdminClaimRow] {
-        _ = try requireAdmin()
-        return state.claims.filter { $0.status == .pendingReview }.map { claim in
-            AdminClaimRow(id: claim.id, venueID: claim.venueID, venueName: state.venues.first { $0.id == claim.venueID }?.name ?? "-",
-                          businessName: claim.businessName, role: ClaimantRole(rawValue: claim.role) ?? .owner,
-                          claimantName: state.users.first { $0.id == claim.requestedBy }?.displayName ?? "-",
-                          contactNote: claim.contactNote, evidenceNote: claim.evidenceNote, createdAt: claim.createdAt)
-        }
-    }
-
-    func adminDecideClaim(id: UUID, approve: Bool, reason: String?) async throws {
-        let admin = try requireAdmin()
-        guard let index = state.claims.firstIndex(where: { $0.id == id }) else { throw BackendError.notFound }
-        guard state.claims[index].status == .pendingReview else { throw BackendError.invalidStatusTransition }
-        let claim = state.claims[index]
-        if !approve {
-            guard let reason, !reason.trimmingCharacters(in: .whitespaces).isEmpty else { throw BackendError.invalidInput("reason_required") }
-            state.claims[index].status = .rejected
-            state.claims[index].decisionReason = reason
-            audit(admin, "claim_rejected", id, reason)
-        } else {
-            guard let venueIndex = state.venues.firstIndex(where: { $0.id == claim.venueID }) else { throw BackendError.notFound }
-            let businessID = state.venues[venueIndex].businessID ?? UUID()
-            state.venues[venueIndex].businessID = businessID
-            state.memberships.removeAll { $0.businessID == businessID && $0.userID == claim.requestedBy }
-            state.memberships.append(Membership(businessID: businessID, businessName: claim.businessName, userID: claim.requestedBy, role: claim.role))
-            state.claims[index].status = .approved
-            state.claims[index].decisionReason = reason
-            audit(admin, "claim_approved", id, reason)
-        }
         save()
     }
 

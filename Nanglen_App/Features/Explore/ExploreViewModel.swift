@@ -114,21 +114,24 @@ final class ExploreViewModel {
     private let session: SessionService
     private let location: LocationProviding
     private let notifier: DataChangeNotifier
-    private let configuration: AppConfiguration
+    private let currentConfiguration: () -> AppConfiguration
+    private var configuration: AppConfiguration { currentConfiguration() }
     private var region: SearchRegion
     private var searchTask: Task<Void, Never>?
     private var debounceTask: Task<Void, Never>?
     private var generation = 0
 
     init(venues: VenueRepository, favorites: FavoriteRepository, session: SessionService, location: LocationProviding,
-         notifier: DataChangeNotifier, configuration: AppConfiguration) {
+         notifier: DataChangeNotifier, configuration: @escaping () -> AppConfiguration) {
         self.venues = venues
         self.favorites = favorites
         self.session = session
         self.location = location
         self.notifier = notifier
-        self.configuration = configuration
-        region = SearchRegion.around(configuration.defaultCenter, radiusMeters: VenueFilter.default.distance.meters)
+        currentConfiguration = configuration
+        let initial = configuration()
+        state.filter = VenueFilter(limits: initial.filter)
+        region = SearchRegion.around(initial.defaultCenter, radiusMeters: state.filter.distanceMeters)
         notifier.subscribe(self) { [weak self] change in self?.handle(change) }
     }
 
@@ -149,6 +152,14 @@ final class ExploreViewModel {
         case .favoritesChanged, .sessionChanged:
             state.favoriteIDs = Set(favorites.favoriteIDs)
         case .reviewSubmitted, .moderationChanged:
+            reload(showSpinner: false)
+        case .configurationChanged:
+            // New server default distance: adopt it unless the person already changed the distance.
+            let limits = configuration.filter
+            guard state.filter.isDistanceDefault, state.filter.defaultDistanceMeters != limits.distanceDefaultMeters else { return }
+            state.filter.defaultDistanceMeters = limits.distanceDefaultMeters
+            state.filter.distanceMeters = limits.distanceDefaultMeters
+            region = SearchRegion.around(region.center, radiusMeters: state.filter.distanceMeters)
             reload(showSpinner: false)
         case .cacheCleared, .submissionsChanged:
             break
@@ -185,7 +196,7 @@ final class ExploreViewModel {
     func apply(_ filter: VenueFilter) {
         guard filter != state.filter else { return }
         state.filter = filter
-        region = SearchRegion.around(region.center, radiusMeters: filter.distance.meters)
+        region = SearchRegion.around(region.center, radiusMeters: filter.distanceMeters)
         reload()
     }
 
@@ -196,7 +207,7 @@ final class ExploreViewModel {
     }
 
     func resetFilters() {
-        state.filter = .default
+        state.filter = VenueFilter(limits: configuration.filter)
         state.category = nil
         reload()
     }
@@ -220,7 +231,7 @@ final class ExploreViewModel {
             guard let self else { return }
             do {
                 let reading = try await location.requestCurrentLocation()
-                region = SearchRegion.around(reading.point, radiusMeters: state.filter.distance.meters)
+                region = SearchRegion.around(reading.point, radiusMeters: state.filter.distanceMeters)
                 state.locationState = .current
                 onEvent?(.moveMap(region))
             } catch {
@@ -263,7 +274,7 @@ final class ExploreViewModel {
     private func makeQuery(offset: Int = 0) -> VenueSearchQuery {
         VenueSearchQuery(
             text: state.query, origin: region.center,
-            radiusMeters: max(state.filter.distance.meters, min(region.radiusMeters, 50_000)),
+            radiusMeters: max(state.filter.distanceMeters, min(region.radiusMeters, 50_000)),
             category: state.category, filter: state.filter, limit: configuration.searchPageSize, offset: offset)
     }
 

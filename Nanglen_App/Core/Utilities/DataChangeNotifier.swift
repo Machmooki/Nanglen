@@ -8,6 +8,8 @@ enum DataChange: Equatable {
     case moderationChanged
     case sessionChanged
     case cacheCleared
+    /// Server limits (`get_public_config`) changed; screens re-read `AppContainer.configuration`.
+    case configurationChanged
 }
 
 /// Tiny main-actor event bus so screens stay in sync (e.g. saving on the

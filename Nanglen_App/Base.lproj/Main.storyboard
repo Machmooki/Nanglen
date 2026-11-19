@@ -508,35 +508,32 @@
                                                 <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0005">
-                                                <rect key="frame" x="0.0" y="121.66666666666666" width="353" height="32"/>
-                                                <segments>
-                                                    <segment title="a"/>
-                                                    <segment title="b"/>
-                                                    <segment title="c"/>
-                                                    <segment title="d"/>
-                                                </segments>
+                                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="3000" minValue="500" maxValue="20000" translatesAutoresizingMaskIntoConstraints="NO" id="sld-0005" customClass="StepSlider" customModule="Nanglen_App" customModuleProvider="target">
+                                                <rect key="frame" x="-2" y="121.66666666666666" width="357" height="44"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="44" id="flt-sld-h"/>
+                                                </constraints>
                                                 <connections>
                                                     <action selector="distanceChanged:" destination="flt-vc" eventType="valueChanged" id="a-0006"/>
+                                                    <action selector="distanceReleased:" destination="flt-vc" eventType="touchUpInside" id="flt-sld-up"/>
+                                                    <action selector="distanceReleased:" destination="flt-vc" eventType="touchUpOutside" id="flt-sld-out"/>
+                                                    <action selector="distanceReleased:" destination="flt-vc" eventType="touchCancel" id="flt-sld-cancel"/>
                                                 </connections>
-                                            </segmentedControl>
+                                            </slider>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Minimum rating" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0007">
                                                 <rect key="frame" x="0.0" y="166.66666666666666" width="353" height="24.333333333333343"/>
                                                 <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0008">
-                                                <rect key="frame" x="0.0" y="205" width="353" height="32"/>
-                                                <segments>
-                                                    <segment title="a"/>
-                                                    <segment title="b"/>
-                                                    <segment title="c"/>
-                                                    <segment title="d"/>
-                                                </segments>
+                                            <control opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="70" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="str-0008" customClass="StarRatingControl" customModule="Nanglen_App" customModuleProvider="target">
+                                                <rect key="frame" x="0.0" y="205" width="353" height="70"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="70" id="flt-str-h"/>
+                                                </constraints>
                                                 <connections>
                                                     <action selector="ratingChanged:" destination="flt-vc" eventType="valueChanged" id="a-0009"/>
                                                 </connections>
-                                            </segmentedControl>
+                                            </control>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0010">
                                                 <rect key="frame" x="0.0" y="250" width="353" height="0.0"/>
                                                 <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
@@ -594,10 +591,10 @@
                     </navigationItem>
                     <connections>
                         <outlet property="applyButton" destination="btn-0013" id="o-0040"/>
-                        <outlet property="distanceControl" destination="seg-0005" id="o-0036"/>
+                        <outlet property="distanceSlider" destination="sld-0005" id="o-0036"/>
                         <outlet property="distanceTitleLabel" destination="lbl-0004" id="o-0035"/>
                         <outlet property="footnoteLabel" destination="lbl-0010" id="o-0039"/>
-                        <outlet property="ratingControl" destination="seg-0008" id="o-0038"/>
+                        <outlet property="ratingControl" destination="str-0008" id="o-0038"/>
                         <outlet property="ratingTitleLabel" destination="lbl-0007" id="o-0037"/>
                         <outlet property="sortControl" destination="seg-0002" id="o-0034"/>
                         <outlet property="sortTitleLabel" destination="lbl-0001" id="o-0033"/>
@@ -670,7 +667,7 @@
                                                         <constraints>
                                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0046"/>
                                                         </constraints>
-                                                        <buttonConfiguration key="configuration" style="plain" title="Write a review"/>
+                                                        <buttonConfiguration key="configuration" style="plain" title="Review"/>
                                                         <connections>
                                                             <action selector="writeReviewTapped:" destination="det-vc" eventType="touchUpInside" id="a-0047"/>
                                                         </connections>
@@ -766,13 +763,6 @@
                                                     </label>
                                                 </subviews>
                                             </stackView>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0074">
-                                                <rect key="frame" x="0.0" y="630.66666666666663" width="353" height="40.333333333333371"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Claim ownership"/>
-                                                <connections>
-                                                    <action selector="claimTapped:" destination="det-vc" eventType="touchUpInside" id="a-0075"/>
-                                                </connections>
-                                            </button>
                                         </subviews>
                                     </stackView>
                                 </subviews>
@@ -803,7 +793,6 @@
                     </navigationItem>
                     <connections>
                         <outlet property="addressLabel" destination="lbl-0054" id="o-0100"/>
-                        <outlet property="claimButton" destination="btn-0074" id="o-0114"/>
                         <outlet property="directionsButton" destination="btn-0042" id="o-0094"/>
                         <outlet property="emptyReviewsLabel" destination="lbl-0065" id="o-0108"/>
                         <outlet property="favoriteBarButton" destination="bbi-0076" id="o-0115"/>
@@ -827,7 +816,6 @@
                         <outlet property="writeReviewButton" destination="btn-0045" id="o-0095"/>
                         <segue destination="rvc-nav" kind="presentation" identifier="presentReviewComposer" id="sg-0078"/>
                         <segue destination="phl-nav" kind="presentation" identifier="presentSignIn" id="sg-0079"/>
-                        <segue destination="clm-nav" kind="presentation" identifier="presentClaim" id="sg-0080"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="det-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1131,7 +1119,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="phl-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-3335" y="1482"/>
+            <point key="canvasLocation" x="-3335" y="1506"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="add-nav-scene">
@@ -1318,130 +1306,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="add-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-4083" y="1507"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="clm-nav-scene">
-            <objects>
-                <navigationController storyboardIdentifier="ClaimNavigationController" id="clm-nav" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="clm-nav-bar">
-                        <rect key="frame" x="0.0" y="16" width="393" height="54"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <connections>
-                        <segue destination="clm-vc" kind="relationship" relationship="rootViewController" id="clm-nav-root"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="clm-nav-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-2486" y="746"/>
-        </scene>
-        <!--Verify ownership-->
-        <scene sceneID="clm-vc-scene">
-            <objects>
-                <viewController storyboardIdentifier="ClaimVenueViewController" id="clm-vc" customClass="ClaimVenueViewController" customModule="Nanglen_App" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="view-0280">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="793"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll-0281">
-                                <rect key="frame" x="0.0" y="70" width="393" height="723"/>
-                                <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="stk-0283">
-                                        <rect key="frame" x="20" y="16" width="353" height="278.33333333333331"/>
-                                        <subviews>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0267">
-                                                <rect key="frame" x="0.0" y="0.0" width="353" height="0.0"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Business name" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0268">
-                                                <rect key="frame" x="0.0" y="14" width="353" height="25"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                <textInputTraits key="textInputTraits"/>
-                                            </textField>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Role" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0269">
-                                                <rect key="frame" x="0.0" y="53.000000000000007" width="353" height="24.333333333333336"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="seg-0270">
-                                                <rect key="frame" x="0.0" y="91.333333333333343" width="353" height="32"/>
-                                                <segments>
-                                                    <segment title="a"/>
-                                                    <segment title="b"/>
-                                                    <segment title="c"/>
-                                                </segments>
-                                                <connections>
-                                                    <action selector="roleChanged:" destination="clm-vc" eventType="valueChanged" id="a-0271"/>
-                                                </connections>
-                                            </segmentedControl>
-                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Contact" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0272">
-                                                <rect key="frame" x="0.0" y="136.33333333333334" width="353" height="25"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                <textInputTraits key="textInputTraits"/>
-                                            </textField>
-                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Evidence" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="tf-0273">
-                                                <rect key="frame" x="0.0" y="175.33333333333331" width="353" height="25"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                <textInputTraits key="textInputTraits"/>
-                                            </textField>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-0274">
-                                                <rect key="frame" x="0.0" y="214.33333333333331" width="353" height="0.0"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btn-0275">
-                                                <rect key="frame" x="0.0" y="228.33333333333331" width="353" height="50"/>
-                                                <constraints>
-                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="c-0276"/>
-                                                </constraints>
-                                                <buttonConfiguration key="configuration" style="plain" title="Send request"/>
-                                                <connections>
-                                                    <action selector="submitTapped:" destination="clm-vc" eventType="touchUpInside" id="a-0277"/>
-                                                </connections>
-                                            </button>
-                                        </subviews>
-                                    </stackView>
-                                </subviews>
-                                <constraints>
-                                    <constraint firstItem="stk-0283" firstAttribute="top" secondItem="scroll-0281" secondAttribute="top" constant="16" id="c-0288"/>
-                                    <constraint firstItem="stk-0283" firstAttribute="leading" secondItem="scroll-0281" secondAttribute="leading" constant="20" id="c-0289"/>
-                                    <constraint firstAttribute="trailing" secondItem="stk-0283" secondAttribute="trailing" constant="20" id="c-0290"/>
-                                    <constraint firstAttribute="bottom" secondItem="stk-0283" secondAttribute="bottom" constant="32" id="c-0291"/>
-                                    <constraint firstItem="stk-0283" firstAttribute="width" secondItem="scroll-0281" secondAttribute="width" constant="-40" id="c-0292"/>
-                                </constraints>
-                            </scrollView>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="safe-0282"/>
-                        <color key="backgroundColor" name="AppBackground"/>
-                        <constraints>
-                            <constraint firstItem="scroll-0281" firstAttribute="top" secondItem="safe-0282" secondAttribute="top" id="c-0284"/>
-                            <constraint firstItem="scroll-0281" firstAttribute="leading" secondItem="view-0280" secondAttribute="leading" id="c-0285"/>
-                            <constraint firstAttribute="trailing" secondItem="scroll-0281" secondAttribute="trailing" id="c-0286"/>
-                            <constraint firstAttribute="bottom" secondItem="scroll-0281" secondAttribute="bottom" id="c-0287"/>
-                        </constraints>
-                    </view>
-                    <navigationItem key="navigationItem" title="Verify ownership" largeTitleDisplayMode="never" id="ni-0301">
-                        <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="bbi-0278">
-                            <connections>
-                                <action selector="cancelTapped:" destination="clm-vc" id="a-0279"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
-                    <connections>
-                        <outlet property="businessNameTextField" destination="tf-0268" id="o-0294"/>
-                        <outlet property="contactTextField" destination="tf-0272" id="o-0297"/>
-                        <outlet property="evidenceTextField" destination="tf-0273" id="o-0298"/>
-                        <outlet property="introLabel" destination="lbl-0267" id="o-0293"/>
-                        <outlet property="roleControl" destination="seg-0270" id="o-0296"/>
-                        <outlet property="roleTitleLabel" destination="lbl-0269" id="o-0295"/>
-                        <outlet property="statusLabel" destination="lbl-0274" id="o-0299"/>
-                        <outlet property="submitButton" destination="btn-0275" id="o-0300"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="clm-vc-fr" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1645" y="746"/>
         </scene>
         <!--My suggested places-->
         <scene sceneID="sub-vc-scene">

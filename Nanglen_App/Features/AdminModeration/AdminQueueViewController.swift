@@ -7,7 +7,7 @@ final class AdminQueueViewController: UITableViewController {
     private var viewModel: AdminQueueViewModel?
     private weak var container: AppContainer?
     private var state = AdminQueueViewModel.State()
-    private let segmented = UISegmentedControl(items: [L10n.Admin.submissions, L10n.Admin.claims, L10n.Admin.flagged])
+    private let segmented = UISegmentedControl(items: [L10n.Admin.submissions, L10n.Admin.flagged])
     private let emptyStateView = EmptyStateView()
     private var pendingSubmissionID: UUID?
 
@@ -56,7 +56,6 @@ final class AdminQueueViewController: UITableViewController {
     private var rowCount: Int {
         switch state.tab {
         case .submissions: state.submissions.count
-        case .claims: state.claims.count
         case .flagged: state.flagged.count
         }
     }
@@ -90,12 +89,6 @@ final class AdminQueueViewController: UITableViewController {
             content.secondaryText = parts.joined(separator: " · ")
             content.image = UIImage(systemName: row.category.symbol)
             cell.accessoryType = .disclosureIndicator
-        case .claims:
-            let row = state.claims[indexPath.row]
-            content.text = "\(row.businessName) → \(row.venueName)"
-            content.secondaryText = [row.claimantName + " · " + row.role.title, row.evidenceNote, row.contactNote].compactMap { $0 }.joined(separator: "\n")
-            content.image = UIImage(systemName: "building.2")
-            cell.accessoryType = .none
         case .flagged:
             let row = state.flagged[indexPath.row]
             content.text = "\(row.venueName) · \(StarText.stars(row.rating))"
@@ -114,16 +107,6 @@ final class AdminQueueViewController: UITableViewController {
         case .submissions:
             pendingSubmissionID = state.submissions[indexPath.row].id
             performSegue(withIdentifier: Segue.showAdminSubmission, sender: self)
-        case .claims:
-            let claim = state.claims[indexPath.row]
-            let sheet = UIAlertController(title: claim.businessName, message: claim.venueName, preferredStyle: .actionSheet)
-            sheet.addAction(UIAlertAction(title: L10n.Admin.approve, style: .default) { [weak self] _ in self?.viewModel?.decideClaim(claim, approve: true, reason: nil) })
-            sheet.addAction(UIAlertAction(title: L10n.Admin.reject, style: .destructive) { [weak self] _ in
-                self?.askReason { reason in self?.viewModel?.decideClaim(claim, approve: false, reason: reason) }
-            })
-            sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
-            sheet.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)
-            present(sheet, animated: true)
         case .flagged:
             let review = state.flagged[indexPath.row]
             let sheet = UIAlertController(title: review.venueName, message: review.body, preferredStyle: .actionSheet)

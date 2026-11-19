@@ -18,7 +18,6 @@ data_users as (  -- any user who owns something
     select user_id as id from public.favorites
     union select user_id from public.reviews
     union select submitted_by from public.venue_submissions
-    union select requested_by from public.venue_claims
     union select user_id from public.business_memberships
     union select user_id from private.admin_users
     union select actor_id from public.moderation_actions
@@ -63,7 +62,6 @@ union all select 'venue_submissions (test user or linked to demo venue)', count(
 union all select 'venue_submissions approved/duplicate -> demo venue (blocks venue delete)', count(*) from public.venue_submissions
     where approved_venue_id in (select id from demo_venues) or duplicate_of_venue_id in (select id from demo_venues)
 union all select 'venue_submission_media', count(*) from public.venue_submission_media where submission_id in (select id from demo_submissions)
-union all select 'venue_claims', count(*) from public.venue_claims where venue_id in (select id from demo_venues) or requested_by in (select id from test_users)
 union all select 'venue_change_requests', count(*) from public.venue_change_requests where venue_id in (select id from demo_venues) or requested_by in (select id from test_users)
 union all select 'business_memberships (test users)', count(*) from public.business_memberships where user_id in (select id from test_users)
 union all select 'visit_challenges', count(*) from private.visit_challenges where venue_id in (select id from demo_venues) or user_id in (select id from test_users)

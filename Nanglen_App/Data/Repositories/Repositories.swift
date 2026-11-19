@@ -190,17 +190,12 @@ final class SubmissionRepository {
     func withdraw(id: UUID) async throws { try await remote.withdrawSubmission(id: id) }
     func uploadPhoto(submissionID: UUID, photo: PhotoUpload) async throws { try await remote.uploadSubmissionPhoto(submissionID: submissionID, photo: photo) }
     func mine() async throws -> [VenueSubmission] { try await remote.mySubmissions() }
+    func photos(submissionID: UUID) async throws -> [SubmissionPhoto] { try await remote.submissionPhotos(submissionID: submissionID) }
+    func removePhoto(id: UUID) async throws { try await remote.removeSubmissionPhoto(id: id) }
 
     func draft() async -> VenueSubmissionDraft? { try? await cache.draft(VenueSubmissionDraft.self, key: Self.draftKey) }
     func saveDraft(_ draft: VenueSubmissionDraft) async { try? await cache.saveDraft(draft, key: Self.draftKey) }
     func deleteDraft() async { try? await cache.deleteDraft(key: Self.draftKey) }
-}
-
-final class BusinessRepository {
-    private let remote: BusinessRemote
-    init(remote: BusinessRemote) { self.remote = remote }
-    func requestClaim(_ draft: VenueClaimDraft) async throws -> ClaimStatus { try await remote.requestClaim(draft) }
-    func myClaims() async throws -> [VenueClaim] { try await remote.myClaims() }
 }
 
 /// Admin operations. UI visibility follows server capabilities, but authorization is enforced by
@@ -211,8 +206,6 @@ final class AdminRepository {
     func submissions(status: SubmissionStatus = .pendingReview) async throws -> [AdminSubmissionRow] { try await remote.adminSubmissions(status: status) }
     func submissionDetail(id: UUID) async throws -> AdminSubmissionDetail { try await remote.adminSubmissionDetail(id: id) }
     func decide(submissionID: UUID, decision: AdminSubmissionDecision) async throws { try await remote.adminDecide(submissionID: submissionID, decision: decision) }
-    func pendingClaims() async throws -> [AdminClaimRow] { try await remote.adminPendingClaims() }
-    func decideClaim(id: UUID, approve: Bool, reason: String?) async throws { try await remote.adminDecideClaim(id: id, approve: approve, reason: reason) }
     func flaggedReviews() async throws -> [AdminFlaggedReview] { try await remote.adminFlaggedReviews() }
     func moderateReview(id: UUID, status: ReviewStatus, reason: String) async throws { try await remote.adminModerateReview(id: id, status: status, reason: reason) }
 }

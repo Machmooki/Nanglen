@@ -37,7 +37,7 @@ nonisolated enum BackendError: Error, Hashable, Sendable {
         case "registration_required": return .registrationRequired
         case "admin_required": return .adminRequired
         case "rate_limited", "too_many_open_submissions": return .rateLimited
-        case "venue_not_found", "submission_not_found", "claim_not_found", "review_not_found",
+        case "venue_not_found", "submission_not_found", "review_not_found",
              "challenge_not_found", "revision_not_found", "media_not_found":
             return .notFound
         case "venue_not_reviewable": return .venueNotReviewable
@@ -53,7 +53,7 @@ nonisolated enum BackendError: Error, Hashable, Sendable {
         case "invalid_rating", "body_too_long", "too_many_tags", "unknown_tag", "name_required",
              "invalid_coordinate", "invalid_website_url", "reason_required", "file_too_large",
              "too_many_photos", "invalid_storage_path", "invalid_display_name", "idempotency_conflict",
-             "claim_already_pending", "already_manager", "cannot_flag_own_review", "reserved_display_name",
+             "cannot_flag_own_review", "reserved_display_name",
              "invalid_sort":
             return .invalidInput(code)
         default: return .server(code)
@@ -113,6 +113,11 @@ protocol VenueRemote: AnyObject {
     func logEvent(_ name: String, venueID: UUID?) async
 }
 
+/// Server-driven limits from `get_public_config()` (backed by `private.app_settings`).
+protocol ConfigRemote: AnyObject {
+    func publicConfig() async throws -> RemoteConfigValues
+}
+
 protocol FavoriteRemote: AnyObject {
     func favoriteVenueIDs() async throws -> [UUID]
     func setFavorite(venueID: UUID, isFavorite: Bool) async throws
@@ -133,21 +138,18 @@ protocol SubmissionRemote: AnyObject {
     func withdrawSubmission(id: UUID) async throws
     func uploadSubmissionPhoto(submissionID: UUID, photo: PhotoUpload) async throws
     func mySubmissions() async throws -> [VenueSubmission]
-}
-
-protocol BusinessRemote: AnyObject {
-    func requestClaim(_ draft: VenueClaimDraft) async throws -> ClaimStatus
-    func myClaims() async throws -> [VenueClaim]
+    /// The caller's photos for one of their submissions, in display order.
+    func submissionPhotos(submissionID: UUID) async throws -> [SubmissionPhoto]
+    /// Removes one photo while the submission is in `needs_changes` (server rule).
+    func removeSubmissionPhoto(id: UUID) async throws
 }
 
 protocol AdminRemote: AnyObject {
     func adminSubmissions(status: SubmissionStatus) async throws -> [AdminSubmissionRow]
     func adminSubmissionDetail(id: UUID) async throws -> AdminSubmissionDetail
     func adminDecide(submissionID: UUID, decision: AdminSubmissionDecision) async throws
-    func adminPendingClaims() async throws -> [AdminClaimRow]
-    func adminDecideClaim(id: UUID, approve: Bool, reason: String?) async throws
     func adminFlaggedReviews() async throws -> [AdminFlaggedReview]
     func adminModerateReview(id: UUID, status: ReviewStatus, reason: String) async throws
 }
 
-typealias NanglenBackend = AuthRemote & VenueRemote & FavoriteRemote & ReviewRemote & SubmissionRemote & BusinessRemote & AdminRemote
+typealias NanglenBackend = AuthRemote & ConfigRemote & VenueRemote & FavoriteRemote & ReviewRemote & SubmissionRemote & AdminRemote

@@ -16,6 +16,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Guest-first: restore the session or sign in anonymously. No sign-up screen, no location prompt.
         let session = container.session
         Task { try? await session.start() }
+        // Server limits (private.app_settings). Cached values are already applied; this picks up edits.
+        let remoteConfig = container.remoteConfig
+        Task { await remoteConfig.refresh() }
         return true
     }
 

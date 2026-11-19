@@ -226,8 +226,12 @@ struct BackendRulesTests {
         #expect(replay.revisionID == first.revisionID)
     }
 
+    /// The tag limit is a server setting (default: the whole catalog). A lower setting is still enforced server-side.
     @Test func tooManyTagsRejectedServerSide() async throws {
-        let backend = makeBackend()
+        var limits = AppConfiguration.standard
+        limits.reviewMaxTags = 3
+        let clock = TestClock()
+        let backend = DemoBackend(directory: nil, seed: true, clock: { clock.now }, limits: limits)
         try await registerUser(backend)
         let verification = try await verified(backend)
         await #expect(throws: BackendError.invalidInput("too_many_tags")) {
@@ -324,25 +328,7 @@ struct BackendRulesTests {
         #expect(try await backend.adminSubmissions(status: .duplicate).count == 1)
     }
 
-    // MARK: Business claims and moderation
-
-    @Test func claimGrantsScopedAccessOnlyAfterApproval() async throws {
-        let backend = makeBackend()
-        try await registerUser(backend, email: "one@example.test")
-        #expect(try await backend.requestClaim(VenueClaimDraft(venueID: Fixtures.cafeID, businessName: "Baicha Co.")) == .pendingReview)
-        #expect(try await backend.venueDetail(id: Fixtures.cafeID).isManagedByMe == false)
-        #expect(try await backend.capabilities().memberships.isEmpty)
-
-        try await registerUser(backend, email: DemoSeed.adminEmail)
-        let claim = try #require(try await backend.adminPendingClaims().first)
-        try await backend.adminDecideClaim(id: claim.id, approve: true, reason: nil)
-        #expect(try await backend.venueDetail(id: Fixtures.cafeID).isManagedByMe == false, "the Admin is not a member")
-
-        try await registerUser(backend, email: "one@example.test")
-        #expect(try await backend.venueDetail(id: Fixtures.cafeID).isManagedByMe)
-        #expect(try await backend.venueDetail(id: Fixtures.libraryID).isManagedByMe == false, "scoped to the claimed venue")
-        #expect(try await backend.capabilities().memberships.first?.venueIDs == [Fixtures.cafeID])
-    }
+    // MARK: Moderation
 
     @Test func flaggedReviewCanBeHiddenOnlyByAdmin() async throws {
         let backend = makeBackend()

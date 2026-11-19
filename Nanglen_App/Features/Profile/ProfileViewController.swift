@@ -1,4 +1,3 @@
-import PhotosUI
 import UIKit
 
 /// Profile (Storyboard `ProfileViewController`, a table view controller with prototype cells).
@@ -13,10 +12,9 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
 
     private enum Row: Equatable {
         case header
-        case verifyEmail, photo, editName
+        case photo, editName
         case saved, reviews, addPlace, mySubmissions
         case business(BusinessMembership)
-        case claim(VenueClaim)
         case moderation
         case location, backend, clearCache, signOut, deleteAccount, version
     }
@@ -31,6 +29,7 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
     private var viewModel: ProfileViewModel?
     private var state = ProfileViewModel.State()
     private var sections: [Section] = []
+    private let photoPicker = PhotoSourcePicker()
 
     func configure(with container: AppContainer) {
         self.container = container
@@ -57,17 +56,14 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
 
     private func rebuild() {
         let caps = state.capabilities
-        var result: [Section] = [Section(rows: [.header])]
+        // Guests tap the card itself to verify their email; the explanation stays right under it.
+        var result: [Section] = [Section(footer: caps?.isRegistered == true ? nil : L10n.Account.guestMessage, rows: [.header])]
         if caps?.isRegistered == true {
             result.append(Section(rows: [.photo, .editName]))
-        } else {
-            result.append(Section(footer: L10n.Account.guestMessage, rows: [.verifyEmail]))
         }
         result.append(Section(title: L10n.Profile.contributions, rows: [.saved, .reviews, .addPlace, .mySubmissions]))
-        if let memberships = caps?.memberships, !memberships.isEmpty || !state.claims.isEmpty {
-            result.append(Section(title: L10n.Profile.myBusinesses, rows: memberships.map(Row.business) + state.claims.map(Row.claim)))
-        } else if !state.claims.isEmpty {
-            result.append(Section(title: L10n.Claim.myClaims, rows: state.claims.map(Row.claim)))
+        if let memberships = caps?.memberships, !memberships.isEmpty {
+            result.append(Section(title: L10n.Profile.myBusinesses, rows: memberships.map(Row.business)))
         }
         if caps?.isAdmin == true {
             result.append(Section(title: L10n.Profile.admin, rows: [.moderation]))
@@ -108,12 +104,6 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         let caps = state.capabilities
         switch row {
         case .header: break
-        case .verifyEmail:
-            content = .subtitleCell()
-            content.text = L10n.Account.verifyEmail
-            content.secondaryText = L10n.Account.verifyEmailShort
-            content.image = UIImage(systemName: "envelope.badge.shield.half.filled")
-            accessory = .disclosureIndicator
         case .photo:
             content.text = L10n.Profile.photo
             content.secondaryText = state.isUploadingPhoto ? L10n.Profile.photoUploading
@@ -144,14 +134,8 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         case .business(let membership):
             content = .subtitleCell()
             content.text = membership.businessName
-            content.secondaryText = (ClaimantRole(rawValue: membership.role)?.title ?? membership.role) + " · \(membership.venueIDs.count)"
+            content.secondaryText = (MembershipRole(rawValue: membership.role)?.title ?? membership.role) + " · \(membership.venueIDs.count)"
             content.image = UIImage(systemName: "building.2.fill")
-        case .claim(let claim):
-            content = .subtitleCell()
-            content.text = claim.businessName
-            content.secondaryText = [claim.status.title, claim.decisionReason].compactMap { $0 }.joined(separator: " · ")
-            content.image = UIImage(systemName: "building.2")
-            tint = claim.status.tone.foreground
         case .moderation:
             content.text = L10n.Profile.moderation
             content.image = UIImage(systemName: "checkmark.shield")
@@ -204,7 +188,12 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         tableView.deselectRow(at: indexPath, animated: true)
         let row = sections[indexPath.section].rows[indexPath.row]
         switch row {
-        case .verifyEmail: performSegue(withIdentifier: Segue.presentSignIn, sender: self)
+        case .header:
+            if state.capabilities?.isRegistered == true {
+                if let cell = tableView.cellForRow(at: indexPath) { presentProfileMenu(from: cell) }
+            } else {
+                performSegue(withIdentifier: Segue.presentSignIn, sender: self)
+            }
         case .addPlace: performSegue(withIdentifier: Segue.presentAddPlace, sender: self)
         case .mySubmissions: performSegue(withIdentifier: Segue.showMySubmissions, sender: self)
         case .moderation: performSegue(withIdentifier: Segue.showAdminQueue, sender: self)
@@ -227,11 +216,33 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
 
     // MARK: Profile photo
 
+    /// Registered users tapping their card: photo and name in one menu (same actions as the rows below).
+    private func presentProfileMenu(from sourceView: UIView) {
+        let hasPhoto = state.capabilities?.avatarPath != nil
+        let sheet = UIAlertController(title: state.capabilities?.displayName, message: nil, preferredStyle: .actionSheet)
+        if !state.isUploadingPhoto {
+            sheet.addAction(UIAlertAction(title: hasPhoto ? L10n.Profile.photo + " · " + L10n.Profile.photoChange : L10n.Profile.photoAdd,
+                                          style: .default) { [weak self] _ in self?.pickProfilePhoto(from: sourceView) })
+            if hasPhoto {
+                sheet.addAction(UIAlertAction(title: L10n.Profile.photoRemove, style: .destructive) { [weak self] _ in
+                    self?.viewModel?.setProfilePhoto(nil)
+                })
+            }
+        }
+        sheet.addAction(UIAlertAction(title: L10n.Profile.editName, style: .default) { [weak self] _ in self?.promptDisplayName() })
+        sheet.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        sheet.popoverPresentationController?.sourceView = sourceView
+        sheet.popoverPresentationController?.sourceRect = sourceView.bounds
+        present(sheet, animated: true)
+    }
+
     private func presentPhotoOptions(from sourceView: UIView) {
         guard !state.isUploadingPhoto else { return }
         let hasPhoto = state.capabilities?.avatarPath != nil
         let sheet = UIAlertController(title: L10n.Profile.photo, message: nil, preferredStyle: .actionSheet)
-        sheet.addAction(UIAlertAction(title: L10n.Profile.photoChoose, style: .default) { [weak self] _ in self?.pickProfilePhoto() })
+        sheet.addAction(UIAlertAction(title: hasPhoto ? L10n.Profile.photoChange : L10n.Profile.photoAdd, style: .default) { [weak self] _ in
+            self?.pickProfilePhoto(from: sourceView)
+        })
         if hasPhoto {
             sheet.addAction(UIAlertAction(title: L10n.Profile.photoRemove, style: .destructive) { [weak self] _ in
                 self?.viewModel?.setProfilePhoto(nil)
@@ -243,13 +254,12 @@ final class ProfileViewController: UITableViewController, AppContainerConfigurab
         present(sheet, animated: true)
     }
 
-    private func pickProfilePhoto() {
-        var configuration = PHPickerConfiguration()
-        configuration.filter = .images
-        configuration.selectionLimit = 1
-        let picker = PHPickerViewController(configuration: configuration)
-        picker.delegate = self
-        present(picker, animated: true)
+    /// Camera or library (one photo).
+    private func pickProfilePhoto(from sourceView: UIView) {
+        photoPicker.present(from: self, sourceView: sourceView, limit: 1) { [weak self] images in
+            guard let image = images.first else { return }
+            self?.viewModel?.setProfilePhoto(image)
+        }
     }
 
     private func promptDisplayName() {
@@ -302,6 +312,8 @@ final class ProfileHeaderCell: UITableViewCell {
 
     var onAvatarTap: (() -> Void)?
     private let photoView = RemoteImageView()
+    /// "Tap to verify your email · Free" / "Tap to change your photo or name".
+    private let hintLabel = UILabel()
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let cameraBadge = UIImageView(image: UIImage(systemName: "camera.circle.fill"))
 
@@ -312,7 +324,12 @@ final class ProfileHeaderCell: UITableViewCell {
     }
 
     private func setUp() {
+        // The whole card is a button: press feedback comes from setHighlighted, not the grey selection.
         selectionStyle = .none
+        accessoryType = .disclosureIndicator
+        hintLabel.apply(AppTypography.footnote, color: AppColors.primary)
+        hintLabel.numberOfLines = 0
+        (nameLabel.superview as? UIStackView)?.addArrangedSubview(hintLabel)
         avatarView.backgroundColor = AppColors.primarySoft
         avatarView.layer.cornerRadius = 32
         avatarImageView.tintColor = AppColors.primary
@@ -359,6 +376,14 @@ final class ProfileHeaderCell: UITableViewCell {
         onAvatarTap?()
     }
 
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        AppComponents.animatePress(contentView, pressed: highlighted)
+        UIView.animate(withDuration: animated ? 0.2 : 0) {
+            self.contentView.alpha = highlighted ? 0.6 : 1
+        }
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         avatarView.layer.cornerRadius = avatarView.bounds.height / 2
@@ -385,20 +410,13 @@ final class ProfileHeaderCell: UITableViewCell {
         avatarImageView.image = UIImage(systemName: caps?.isAdmin == true ? "checkmark.shield.fill" : caps?.isRegistered == true ? "person.fill.checkmark" : "person.fill")
         sinceLabel.text = [caps?.contactHint, isDemo ? "⚠︎ " + L10n.Common.demoBadge : nil].compactMap { $0 }.joined(separator: " · ")
         sinceLabel.isHidden = sinceLabel.text?.isEmpty ?? true
+        let isRegistered = caps?.isRegistered == true
+        hintLabel.text = isRegistered ? L10n.Profile.tapToEdit : L10n.Profile.tapToVerify
+        // One VoiceOver element: the card is a button (sign in for guests, profile menu for members).
+        isAccessibilityElement = true
+        accessibilityTraits = .button
         accessibilityLabel = [nameLabel.text, identifierLabel.text, sinceLabel.text].compactMap { $0 }.joined(separator: ", ")
-        avatarView.isAccessibilityElement = caps?.isRegistered == true
-        avatarView.accessibilityLabel = L10n.Profile.photo
-        avatarView.accessibilityTraits = .button
-    }
-}
-
-extension ProfileViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        picker.dismiss(animated: true)
-        guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
-        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
-            guard let image = object as? UIImage else { return }
-            Task { @MainActor in self?.viewModel?.setProfilePhoto(image) }
-        }
+        accessibilityHint = isRegistered ? L10n.Profile.tapToEditHint : L10n.Profile.tapToVerifyHint
+        accessibilityIdentifier = "profile.header"
     }
 }

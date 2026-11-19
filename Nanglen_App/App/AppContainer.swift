@@ -4,7 +4,10 @@ import os
 /// Composition root: builds every dependency once and hands out view models.
 /// View controllers receive the container — never a singleton, never the backend directly.
 final class AppContainer {
-    let configuration: AppConfiguration
+    /// Built-in defaults merged with the server's `get_public_config()` (see `AppConfiguration.swift`).
+    /// Read it when a screen is created; it can change once after launch (`.configurationChanged`).
+    var configuration: AppConfiguration { remoteConfig.current }
+    let remoteConfig: RemoteConfigService
     let database: DatabaseManager
     let cache: LocalCache
     let backend: NanglenBackend
@@ -17,7 +20,6 @@ final class AppContainer {
     let favorites: FavoriteRepository
     let reviews: ReviewRepository
     let submissions: SubmissionRepository
-    let business: BusinessRepository
     let admin: AdminRepository
 
     let session: SessionService
@@ -36,7 +38,6 @@ final class AppContainer {
         locationManager: LocationProviding,
         placeSearchProvider: PlaceSearchProvider
     ) {
-        self.configuration = configuration
         self.database = database
         self.backend = backend
         self.isUsingVolatileStorage = isUsingVolatileStorage
@@ -44,18 +45,19 @@ final class AppContainer {
         self.placeSearchProvider = placeSearchProvider
         cache = LocalCache(database: database)
         mapCoordinator = MapCoordinator()
+        let remoteConfig = RemoteConfigService(base: configuration, remote: backend, cache: LocalRemoteConfigCache(cache: cache), notifier: notifier)
+        self.remoteConfig = remoteConfig
 
         venues = VenueRepository(remote: backend, cache: cache, configuration: configuration)
         favorites = FavoriteRepository(remote: backend, cache: cache)
         reviews = ReviewRepository(remote: backend, cache: cache)
         submissions = SubmissionRepository(remote: backend, cache: cache)
-        business = BusinessRepository(remote: backend)
         admin = AdminRepository(remote: backend)
 
         session = SessionService(auth: backend, favorites: favorites, notifier: notifier)
         verification = VisitVerificationService(reviews: reviews, location: locationManager)
-        reviewService = ReviewService(reviews: reviews, configuration: configuration, notifier: notifier)
-        submissionService = SubmissionService(submissions: submissions, configuration: configuration, notifier: notifier)
+        reviewService = ReviewService(reviews: reviews, configuration: { remoteConfig.current }, notifier: notifier)
+        submissionService = SubmissionService(submissions: submissions, configuration: { remoteConfig.current }, notifier: notifier)
     }
 
     /// Production wiring: on-disk cache, real location and MapKit, Supabase when configured,
@@ -111,7 +113,7 @@ final class AppContainer {
 
     func makeExploreViewModel() -> ExploreViewModel {
         ExploreViewModel(venues: venues, favorites: favorites, session: session, location: locationManager,
-                         notifier: notifier, configuration: configuration)
+                         notifier: notifier, configuration: { [remoteConfig] in remoteConfig.current })
     }
 
     func makeVenueDetailViewModel(venue: VenueSummary) -> VenueDetailViewModel {
@@ -139,7 +141,7 @@ final class AppContainer {
     }
 
     func makeProfileViewModel() -> ProfileViewModel {
-        ProfileViewModel(session: session, business: business, venues: venues, cache: cache, location: locationManager, notifier: notifier)
+        ProfileViewModel(session: session, venues: venues, cache: cache, location: locationManager, notifier: notifier)
     }
 
     func makeMySubmissionsViewModel() -> MySubmissionsViewModel {
@@ -152,10 +154,6 @@ final class AppContainer {
 
     func makeAdminSubmissionViewModel(id: UUID) -> AdminSubmissionViewModel {
         AdminSubmissionViewModel(submissionID: id, admin: admin, venues: venues, notifier: notifier)
-    }
-
-    func makeClaimViewModel(venue: VenueSummary) -> ClaimVenueViewModel {
-        ClaimVenueViewModel(venue: venue, business: business, session: session)
     }
 }
 

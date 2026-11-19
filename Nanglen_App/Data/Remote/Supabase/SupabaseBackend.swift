@@ -103,6 +103,7 @@ final class SupabaseBackend: NanglenBackend {
     }
 
     nonisolated private static let authLogger = Logger(subsystem: "Mach.Nanglen-App", category: "Auth")
+    nonisolated private static let mediaLogger = Logger(subsystem: "Mach.Nanglen-App", category: "Media")
 
     /// GoTrue answers 500 `unexpected_failure` with e.g. "Error sending email change email" or the raw
     /// SMTP reply ("535 5.7.8 Username and Password not accepted") when the code email can't be sent.
@@ -263,7 +264,7 @@ final class SupabaseBackend: NanglenBackend {
             p_query: query.trimmedText.isEmpty ? nil : String(query.trimmedText.prefix(100)),
             p_latitude: query.origin?.latitude, p_longitude: query.origin?.longitude,
             p_radius_m: query.radiusMeters, p_category: query.category?.rawValue,
-            p_min_rating: query.filter.minimumRating.value, p_sort: query.filter.sort.rawValue,
+            p_min_rating: query.filter.minimumRating, p_sort: query.filter.sort.rawValue,
             p_limit: query.limit + 1, p_offset: query.offset,
             p_tags: query.filter.tags.isEmpty ? nil : query.filter.tags.sorted(),
             p_reviewed_only: query.filter.reviewedOnly)
@@ -333,6 +334,12 @@ final class SupabaseBackend: NanglenBackend {
         } catch {
             throw Self.map(error)
         }
+    }
+
+    // MARK: ConfigRemote
+
+    func publicConfig() async throws -> RemoteConfigValues {
+        try await rpc("get_public_config")
     }
 
     // MARK: ReviewRemote
@@ -443,24 +450,19 @@ final class SupabaseBackend: NanglenBackend {
         }
     }
 
-    // MARK: BusinessRemote
-
-    func requestClaim(_ draft: VenueClaimDraft) async throws -> ClaimStatus {
-        let params = ClaimParams(p_client_request_id: draft.clientRequestID, p_venue_id: draft.venueID, p_business_name: draft.businessName,
-                                 p_claimant_role: draft.role.rawValue, p_contact_note: draft.contactNote, p_evidence_note: draft.evidenceNote)
-        let dto: ClaimReceiptDTO = try await rpc("request_venue_claim", params)
-        return ClaimStatus(rawValue: dto.status) ?? .pendingReview
+    func submissionPhotos(submissionID: UUID) async throws -> [SubmissionPhoto] {
+        let rows: [SubmissionMediaDTO] = try await rpc("list_my_submission_media", ["p_submission_id": submissionID])
+        return rows.map(\.model)
     }
 
-    func myClaims() async throws -> [VenueClaim] {
+    /// The RPC checks ownership and `needs_changes`, deletes the row and returns the path; the Storage object is
+    /// then removed with the owner's own policy. A failed object delete only leaves an unreferenced file.
+    func removeSubmissionPhoto(id: UUID) async throws {
+        let path: String = try await rpc("remove_submission_media", ["p_media_id": id])
         do {
-            let rows: [ClaimDTO] = try await client.from("venue_claims")
-                .select("id,venue_id,business_name,claimant_role,status,decision_reason,created_at")
-                .order("created_at", ascending: false).limit(50)
-                .execute().value
-            return rows.map(\.model)
+            _ = try await client.storage.from(MediaBucket.venue.rawValue).remove(paths: [path])
         } catch {
-            throw Self.map(error)
+            Self.mediaLogger.notice("Submission photo row removed but the Storage object was not: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -487,15 +489,6 @@ final class SupabaseBackend: NanglenBackend {
         case .markDuplicate(let venueID, let reason):
             try await rpcVoid("admin_mark_submission_duplicate", DuplicateParams(p_submission_id: submissionID, p_venue_id: venueID, p_reason: reason))
         }
-    }
-
-    func adminPendingClaims() async throws -> [AdminClaimRow] {
-        let rows: [AdminClaimDTO] = try await rpc("admin_list_venue_claims", ["p_status": "pending_review"])
-        return rows.map(\.model)
-    }
-
-    func adminDecideClaim(id: UUID, approve: Bool, reason: String?) async throws {
-        try await rpcVoid("admin_decide_venue_claim", ClaimDecisionParams(p_claim_id: id, p_approve: approve, p_reason: reason))
     }
 
     func adminFlaggedReviews() async throws -> [AdminFlaggedReview] {

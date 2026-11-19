@@ -42,7 +42,6 @@ create temp table _data_users on commit drop as
 select user_id as id from public.favorites
 union select user_id from public.reviews
 union select submitted_by from public.venue_submissions
-union select requested_by from public.venue_claims
 union select user_id from public.business_memberships
 union select user_id from private.admin_users
 union select actor_id from public.moderation_actions
@@ -60,7 +59,6 @@ select 'venues (demo)' as item, (select count(*) from public.venues where id in 
 union all select 'reviews on demo venues or by test users', (select count(*) from public.reviews where venue_id in (select id from _demo_venues) or user_id in (select id from _test_users))
 union all select 'favorites', (select count(*) from public.favorites where venue_id in (select id from _demo_venues) or user_id in (select id from _test_users))
 union all select 'venue_submissions', (select count(*) from public.venue_submissions where submitted_by in (select id from _test_users) or approved_venue_id in (select id from _demo_venues) or duplicate_of_venue_id in (select id from _demo_venues))
-union all select 'venue_claims', (select count(*) from public.venue_claims where venue_id in (select id from _demo_venues) or requested_by in (select id from _test_users))
 union all select 'visit_verifications', (select count(*) from private.visit_verifications where venue_id in (select id from _demo_venues) or user_id in (select id from _test_users))
 union all select 'analytics_events (demo venues)', (select count(*) from private.analytics_events where venue_id in (select id from _demo_venues))
 union all select 'auth.users test (deletable)', (select count(*) from auth.users where id in (select id from _test_users) and id not in (select id from _audited_test_users))

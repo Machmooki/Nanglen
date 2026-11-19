@@ -1,5 +1,7 @@
 # Business Owner Model
 
+> **2026-11-19: the in-app Claim Ownership flow was removed** (app UI, Admin claims tab, `request_venue_claim`, `admin_list_venue_claims`, `admin_decide_venue_claim`, table `venue_claims`, setting `claims_max_open`; migration `20261119000100_remove_claims_facility_filter.sql`). `business_accounts` / `business_memberships` remain: existing members keep scoped access, and new memberships can only be created by an Admin with SQL. The sections below describe the original design.
+
 ## MVP (implemented)
 
 - Business Owner is **not** a self-selected role. A Registered user submits a claim from Venue Detail ("เป็นเจ้าของที่นี่? ขอยืนยันความเป็นเจ้าของ") with business name, role (owner/manager/editor), contact and evidence notes.

@@ -3,6 +3,8 @@ import UIKit
 /// One published review (current revision). Shows the reviewer's display name only.
 final class ReviewCardView: UIView {
     var onReport: (() -> Void)?
+    /// All photo URLs of the review and the tapped index (opens the full-screen viewer).
+    var onPhotoTap: (([URL], Int) -> Void)?
 
     private let authorLabel = UILabel()
     private let badgeLabel = UILabel()
@@ -11,6 +13,8 @@ final class ReviewCardView: UIView {
     private let bodyLabel = UILabel()
     private let tagsView = TagPillsView()
     private let photosStack = UIStackView()
+    private let photosScroll = UIScrollView()
+    private var photoURLs: [URL] = []
     private let menuButton = UIButton(type: .system)
 
     override init(frame: CGRect) {
@@ -37,6 +41,18 @@ final class ReviewCardView: UIView {
         tagsView.lineSpacing = AppSpacing.xs
         photosStack.axis = .horizontal
         photosStack.spacing = AppSpacing.s
+        photosScroll.showsHorizontalScrollIndicator = false
+        photosScroll.alwaysBounceHorizontal = false
+        photosStack.translatesAutoresizingMaskIntoConstraints = false
+        photosScroll.addSubview(photosStack)
+        NSLayoutConstraint.activate([
+            photosStack.topAnchor.constraint(equalTo: photosScroll.contentLayoutGuide.topAnchor),
+            photosStack.bottomAnchor.constraint(equalTo: photosScroll.contentLayoutGuide.bottomAnchor),
+            photosStack.leadingAnchor.constraint(equalTo: photosScroll.contentLayoutGuide.leadingAnchor),
+            photosStack.trailingAnchor.constraint(equalTo: photosScroll.contentLayoutGuide.trailingAnchor),
+            photosStack.heightAnchor.constraint(equalTo: photosScroll.frameLayoutGuide.heightAnchor),
+            photosScroll.heightAnchor.constraint(equalToConstant: Self.thumbnailSize),
+        ])
 
         var menuConfig = UIButton.Configuration.plain()
         menuConfig.image = UIImage(systemName: "ellipsis")
@@ -56,7 +72,7 @@ final class ReviewCardView: UIView {
         starRow.axis = .horizontal
         starRow.spacing = AppSpacing.s
         starRow.alignment = .firstBaseline
-        let stack = UIStackView(arrangedSubviews: [nameRow, starRow, badgeLabel, bodyLabel, tagsView, photosStack])
+        let stack = UIStackView(arrangedSubviews: [nameRow, starRow, badgeLabel, bodyLabel, tagsView, photosScroll])
         stack.axis = .vertical
         stack.spacing = AppSpacing.s
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -86,18 +102,46 @@ final class ReviewCardView: UIView {
         tagsView.configure(review.tags.map { ReviewTag.pill(for: $0) })
         tagsView.isHidden = review.tags.isEmpty
         menuButton.isHidden = review.isMine
-        AppComponents.replaceArrangedSubviews(of: photosStack, with: photoURLs.prefix(3).map { url in
-            let imageView = RemoteImageView()
-            imageView.load(url)
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            imageView.widthAnchor.constraint(equalToConstant: 72).isActive = true
-            imageView.heightAnchor.constraint(equalToConstant: 72).isActive = true
-            return imageView
-        } + [UIView()])
-        photosStack.isHidden = photoURLs.isEmpty
+        configurePhotos(photoURLs)
         isAccessibilityElement = false
-        accessibilityElements = [authorLabel, starsLabel, metaLabel, badgeLabel, bodyLabel, tagsView, menuButton]
+        accessibilityElements = [authorLabel, starsLabel, metaLabel, badgeLabel, bodyLabel, tagsView] + photosStack.arrangedSubviews + [menuButton]
         starsLabel.accessibilityLabel = L10n.Rating.starLabel(review.rating)
+    }
+}
+
+extension ReviewCardView {
+    static let thumbnailSize: CGFloat = 84
+
+    /// Every photo of the review (server limit, currently 5) as a horizontally scrolling row of thumbnails.
+    private func configurePhotos(_ urls: [URL]) {
+        photoURLs = urls
+        let thumbnails: [UIView] = urls.enumerated().map { index, url in
+            let button = UIButton(type: .custom)
+            let imageView = RemoteImageView(frame: CGRect(x: 0, y: 0, width: Self.thumbnailSize, height: Self.thumbnailSize))
+            imageView.isUserInteractionEnabled = false
+            imageView.load(url, maxPixelSize: Self.thumbnailSize * 3)
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            button.addSubview(imageView)
+            button.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                button.widthAnchor.constraint(equalToConstant: Self.thumbnailSize),
+                button.heightAnchor.constraint(equalToConstant: Self.thumbnailSize),
+                imageView.topAnchor.constraint(equalTo: button.topAnchor),
+                imageView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+                imageView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+                imageView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            ])
+            button.accessibilityLabel = L10n.Detail.photoPosition(index + 1, urls.count)
+            button.accessibilityTraits = [.button, .image]
+            button.addAction(UIAction { [weak self] _ in
+                guard let self else { return }
+                onPhotoTap?(photoURLs, index)
+            }, for: .primaryActionTriggered)
+            return button
+        }
+        AppComponents.replaceArrangedSubviews(of: photosStack, with: thumbnails)
+        photosScroll.isHidden = urls.isEmpty
+        photosScroll.contentOffset = .zero
     }
 }
 

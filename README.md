@@ -19,7 +19,7 @@ location-verified visit** and suggest new places, which go public **only after a
 | iOS app on the Supabase backend (`SupabaseBackend`) | **Implemented and compiles**; **not run against a live project** (no credentials) |
 | iOS app on the Demo backend (same rules, in-process) | **Implemented, tested** (55 unit tests + 2 UI tests pass); main flows checked by hand on the iPhone 17 simulator |
 | Email OTP (free SMTP), CAPTCHA, buckets, `delete-account` function deploy, first Admin | **Requires external configuration** (see `docs/PRODUCTION_DEPLOYMENT.md`) |
-| App Attest, Admin photo approval UI, business tools beyond claims, English localisation | **Planned** |
+| App Attest, Admin photo approval UI, business tools, English localisation | **Planned** |
 
 ## Running
 
@@ -61,7 +61,7 @@ Nanglen_App/
 │                     Review/Submission, VenueRanker, Validators, CategoryClassifier)
 ├── Data/             Remote (NanglenBackend protocols, Supabase/, Demo/) · Local (LocalCache) · Repositories · Providers (MapKit)
 └── Features/         Explore, Filter, VenueDetail, ReviewComposer, Account (email sign-in), VenueSubmission (Add Place),
-                      MySubmissions, Saved, Profile, Business (claim), AdminModeration, Shared
+                      MySubmissions, Saved, Profile, AdminModeration, Shared
 supabase/             config.toml, migrations/ (8 ordered files), functions/delete-account, templates/email_otp.html, seed.sql (dev only), tests/database/
 Config/               Supabase.example.plist
 docs/                 audits, ADR, design, security, verification, workflows, performance, cost, cache, deployment

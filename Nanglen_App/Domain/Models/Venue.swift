@@ -163,48 +163,37 @@ nonisolated struct VenueFilter: Hashable, Sendable {
         case relevance, distance, rating
     }
 
-    enum Distance: CaseIterable, Hashable, Sendable {
-        case km1, km3, km5, km10
-
-        var meters: Double {
-            switch self {
-            case .km1: 1_000
-            case .km3: 3_000
-            case .km5: 5_000
-            case .km10: 10_000
-            }
-        }
-    }
-
-    enum MinimumRating: CaseIterable, Hashable, Sendable {
-        case any, three, four, fourHalf
-
-        var value: Double? {
-            switch self {
-            case .any: nil
-            case .three: 3
-            case .four: 4
-            case .fourHalf: 4.5
-            }
-        }
-    }
-
     var sort: Sort = .relevance
-    var distance: Distance = .km3
-    var minimumRating: MinimumRating = .any
+    /// Search radius in meters (slider; range and default come from the server config).
+    var distanceMeters: Double
+    /// The default this filter was created with, so "active" and "remove" don't need the config.
+    var defaultDistanceMeters: Double
+    /// Minimum average rating, `nil` = any. Steps come from the server config (e.g. 0.5).
+    var minimumRating: Double?
     /// "Good for" community tags; a venue must have each tag chosen by visitors.
     var tags: Set<String> = []
     var reviewedOnly = false
 
+    init(defaultDistanceMeters: Double = 3_000) {
+        self.defaultDistanceMeters = defaultDistanceMeters
+        distanceMeters = defaultDistanceMeters
+    }
+
+    /// Default filter for the current server limits.
+    init(limits: AppConfiguration.FilterLimits) {
+        self.init(defaultDistanceMeters: limits.distanceDefaultMeters)
+    }
+
     static let `default` = VenueFilter()
-    static let maxTags = 3
     /// Tags offered as filters (positive "good for" impressions; "expensive" is not a filter).
     static let goodForTags = ["study_friendly", "work_friendly", "quiet", "good_wifi", "power_outlets",
                               "comfortable_seating", "good_lighting", "good_value", "lively"]
 
+    var isDistanceDefault: Bool { abs(distanceMeters - defaultDistanceMeters) < 1 }
+
     /// Number of non-default choices, shown as a badge on the filter button.
     var activeCount: Int {
-        tags.count + [sort != .relevance, distance != .km3, minimumRating != .any, reviewedOnly].filter { $0 }.count
+        tags.count + [sort != .relevance, !isDistanceDefault, minimumRating != nil, reviewedOnly].filter { $0 }.count
     }
 
     /// Active choices in display order, for removable summary chips.
@@ -214,9 +203,9 @@ nonisolated struct VenueFilter: Hashable, Sendable {
 
     var activeItems: [Item] {
         var items: [Item] = tags.sorted { (Self.goodForTags.firstIndex(of: $0) ?? 99) < (Self.goodForTags.firstIndex(of: $1) ?? 99) }.map(Item.tag)
-        if minimumRating != .any { items.append(.minimumRating) }
+        if minimumRating != nil { items.append(.minimumRating) }
         if reviewedOnly { items.append(.reviewedOnly) }
-        if distance != .km3 { items.append(.distance) }
+        if !isDistanceDefault { items.append(.distance) }
         if sort != .relevance { items.append(.sort) }
         return items
     }
@@ -224,16 +213,21 @@ nonisolated struct VenueFilter: Hashable, Sendable {
     mutating func remove(_ item: Item) {
         switch item {
         case .tag(let slug): tags.remove(slug)
-        case .minimumRating: minimumRating = .any
+        case .minimumRating: minimumRating = nil
         case .reviewedOnly: reviewedOnly = false
-        case .distance: distance = .km3
+        case .distance: distanceMeters = defaultDistanceMeters
         case .sort: sort = .relevance
         }
     }
 
+    /// Everything back to defaults, keeping the configured default distance.
+    mutating func reset() {
+        self = VenueFilter(defaultDistanceMeters: defaultDistanceMeters)
+    }
+
     /// Local check used for cached/offline results (server applies the authoritative filter).
     func matches(_ venue: VenueSummary) -> Bool {
-        if let minimum = minimumRating.value, (venue.rating.average ?? 0) < minimum { return false }
+        if let minimum = minimumRating, (venue.rating.average ?? 0) < minimum { return false }
         if reviewedOnly, !venue.rating.hasReviews { return false }
         return tags.allSatisfy(venue.topTags.contains)
     }

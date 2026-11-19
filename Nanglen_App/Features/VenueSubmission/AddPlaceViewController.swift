@@ -1,5 +1,4 @@
 import MapKit
-import PhotosUI
 import UIKit
 
 /// Add / resubmit a place (Storyboard scene `AddPlaceViewController` in `AddPlaceNavigationController`).
@@ -25,6 +24,9 @@ final class AddPlaceViewController: UIViewController {
     private var viewModel: AddPlaceViewModel?
     private weak var container: AppContainer?
     private let pinView = UIImageView(image: UIImage(systemName: "mappin"))
+    private let locateButton = UIButton(type: .system)
+    private let photoPicker = PhotoSourcePicker()
+    private var keyboard: FormKeyboardHandler?
     private var isApplyingRegion = false
 
     func configure(viewModel: AddPlaceViewModel, container: AppContainer) {
@@ -41,6 +43,7 @@ final class AddPlaceViewController: UIViewController {
         setUpAppearance(viewModel)
         viewModel.onChange = { [weak self] state in self?.render(state) }
         viewModel.onOutcome = { [weak self] outcome in self?.handle(outcome) }
+        viewModel.onMoveMap = { [weak self] point in self?.moveMap(to: point, animated: true) }
         render(viewModel.state)
         viewModel.start()
         isModalInPresentation = true
@@ -67,6 +70,9 @@ final class AddPlaceViewController: UIViewController {
             pinView.centerXAnchor.constraint(equalTo: mapView.centerXAnchor),
             pinView.bottomAnchor.constraint(equalTo: mapView.centerYAnchor),
         ])
+        // The blue dot only once location is allowed (never prompts on its own).
+        mapView.showsUserLocation = viewModel.isLocationAuthorized
+        setUpLocateButton()
         moveMap(to: viewModel.initialCenter)
 
         style(nameTextField, L10n.Submission.name, id: "addPlace.name")
@@ -95,15 +101,20 @@ final class AddPlaceViewController: UIViewController {
         descriptionTextView.delegate = self
         descriptionTextView.accessibilityLabel = L10n.Submission.description
         AppStyles.sectionTitle(photosTitleLabel)
-        photosTitleLabel.text = L10n.Submission.photos
+        photosTitleLabel.text = L10n.Submission.photos(viewModel.configuration.submissionMaxPhotos)
         photoStrip.maximumCount = viewModel.configuration.submissionMaxPhotos
         photoStrip.onAdd = { [weak self] in self?.pickPhoto() }
         photoStrip.onRemove = { [weak self] index in self?.viewModel?.removePhoto(at: index) }
-        photoStrip.isHidden = viewModel.editing != nil
-        photosTitleLabel.isHidden = viewModel.editing != nil
+        photoStrip.isHidden = !viewModel.canEditPhotos
+        photosTitleLabel.isHidden = !viewModel.canEditPhotos
         issuesLabel.apply(AppTypography.footnote, color: AppColors.bad)
         submitButton.accessibilityIdentifier = "addPlace.submit"
-        scrollView.keyboardDismissMode = .interactive
+        keyboard = FormKeyboardHandler(scrollView: scrollView, rootView: view)
+        keyboard?.manage([nameTextField, addressTextField, descriptionTextView, websiteTextField, phoneTextField, noteTextField])
+        nameTextField.textContentType = .organizationName
+        addressTextField.textContentType = .fullStreetAddress
+        websiteTextField.textContentType = .URL
+        phoneTextField.textContentType = .telephoneNumber
 
         let draft = viewModel.state.draft
         nameTextField.text = draft.name
@@ -138,7 +149,7 @@ final class AddPlaceViewController: UIViewController {
         if phoneTextField.text != state.draft.phoneNumber, !phoneTextField.isFirstResponder { phoneTextField.text = state.draft.phoneNumber }
         categoryControl.selectedSegmentIndex = state.draft.category.flatMap { VenueCategory.allCases.firstIndex(of: $0) } ?? UISegmentedControl.noSegment
         categoryTitleLabel.text = L10n.Submission.category + (state.draft.category.map { " · \($0.title)" } ?? "")
-        photoStrip.setImages(state.photos)
+        photoStrip.setItems(viewModel.photoItems)
         var messages: [String] = []
         if state.showValidation {
             messages += state.issues.map { issue in
@@ -160,11 +171,67 @@ final class AddPlaceViewController: UIViewController {
         submitButton.configuration?.showsActivityIndicator = state.isSubmitting
     }
 
-    private func moveMap(to point: GeoPoint) {
-        isApplyingRegion = true
+    private func moveMap(to point: GeoPoint, animated: Bool = false) {
+        isApplyingRegion = !animated
         mapView.setRegion(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude),
-                                             latitudinalMeters: 400, longitudinalMeters: 400), animated: false)
+                                             latitudinalMeters: 400, longitudinalMeters: 400), animated: animated)
         isApplyingRegion = false
+    }
+
+    // MARK: My location
+
+    private func setUpLocateButton() {
+        var config = UIButton.Configuration.filled()
+        config.image = UIImage(systemName: "location.fill")
+        config.cornerStyle = .capsule
+        config.baseBackgroundColor = AppColors.card
+        config.baseForegroundColor = AppColors.primary
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(textStyle: .body, scale: .medium)
+        locateButton.configuration = config
+        locateButton.layer.shadowColor = UIColor.black.cgColor
+        locateButton.layer.shadowOpacity = 0.18
+        locateButton.layer.shadowRadius = 6
+        locateButton.layer.shadowOffset = CGSize(width: 0, height: 2)
+        locateButton.accessibilityLabel = L10n.Submission.moveToMyLocation
+        locateButton.accessibilityIdentifier = "addPlace.locate"
+        locateButton.translatesAutoresizingMaskIntoConstraints = false
+        locateButton.addAction(UIAction { [weak self] _ in self?.locateTapped() }, for: .primaryActionTriggered)
+        mapView.addSubview(locateButton)
+        NSLayoutConstraint.activate([
+            locateButton.trailingAnchor.constraint(equalTo: mapView.trailingAnchor, constant: -AppSpacing.m),
+            locateButton.bottomAnchor.constraint(equalTo: mapView.bottomAnchor, constant: -AppSpacing.m),
+            locateButton.widthAnchor.constraint(equalToConstant: 44),
+            locateButton.heightAnchor.constraint(equalToConstant: 44),
+        ])
+    }
+
+    private func locateTapped() {
+        guard let viewModel else { return }
+        AppComponents.selectionHaptic()
+        locateButton.configuration?.showsActivityIndicator = true
+        Task { [weak self] in
+            let result = await viewModel.locateMe()
+            guard let self else { return }
+            locateButton.configuration?.showsActivityIndicator = false
+            switch result {
+            case .moved(let point):
+                mapView.showsUserLocation = true
+                moveMap(to: point, animated: true)
+            case .denied:
+                presentLocationDenied()
+            case .unavailable:
+                showToast(L10n.Review.unavailable)
+            }
+        }
+    }
+
+    private func presentLocationDenied() {
+        let alert = UIAlertController(title: L10n.Explore.locationDeniedTitle, message: L10n.Explore.locationDeniedMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.openSettings, style: .default) { _ in
+            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+        })
+        present(alert, animated: true)
     }
 
     private func fieldsChanged() {
@@ -188,9 +255,11 @@ final class AddPlaceViewController: UIViewController {
             let alert = UIAlertController(title: L10n.Submission.submitted, message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: L10n.Common.ok, style: .default) { [weak self] _ in self?.dismiss(animated: true) })
             present(alert, animated: true)
-        case .resubmitted:
+        case .resubmitted(let failedPhotos):
             let presenter = presentingViewController
-            dismiss(animated: true) { presenter?.showToast(L10n.Submission.submitted) }
+            var message = L10n.Submission.submitted
+            if failedPhotos > 0 { message += "\n" + L10n.Submission.photosNotUpdated(failedPhotos) }
+            dismiss(animated: true) { presenter?.showToast(message) }
         case .alreadyListed(let venueID):
             presentAlreadyListed(venueID)
         case .needsRegistration:
@@ -228,12 +297,11 @@ final class AddPlaceViewController: UIViewController {
     }
 
     private func pickPhoto() {
-        var configuration = PHPickerConfiguration()
-        configuration.filter = .images
-        configuration.selectionLimit = 1
-        let picker = PHPickerViewController(configuration: configuration)
-        picker.delegate = self
-        present(picker, animated: true)
+        guard let viewModel else { return }
+        view.endEditing(true)
+        photoPicker.present(from: self, sourceView: photoStrip.addButton, limit: viewModel.remainingPhotoSlots) { [weak self] images in
+            self?.viewModel?.addPhotos(images)
+        }
     }
 
     // MARK: Actions
@@ -290,17 +358,6 @@ extension AddPlaceViewController: UITextViewDelegate {
 
     func textViewDidChange(_ textView: UITextView) {
         viewModel?.update { $0.description = String(textView.text.prefix(1_000)) }
-    }
-}
-
-extension AddPlaceViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        picker.dismiss(animated: true)
-        guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
-        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
-            guard let image = object as? UIImage else { return }
-            Task { @MainActor in self?.viewModel?.addPhoto(image) }
-        }
     }
 }
 

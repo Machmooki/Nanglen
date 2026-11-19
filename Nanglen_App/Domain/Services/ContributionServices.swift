@@ -10,13 +10,19 @@ nonisolated struct ReviewPublishOutcome: Hashable, Sendable {
 /// a local draft is kept whenever publishing fails.
 final class ReviewService {
     private let reviews: ReviewRepository
-    private let configuration: AppConfiguration
+    private let currentConfiguration: () -> AppConfiguration
     private let notifier: DataChangeNotifier
+    private var configuration: AppConfiguration { currentConfiguration() }
 
-    init(reviews: ReviewRepository, configuration: AppConfiguration, notifier: DataChangeNotifier) {
+    /// - Parameter configuration: read on every use, so server limits fetched after launch apply immediately.
+    init(reviews: ReviewRepository, configuration: @escaping () -> AppConfiguration, notifier: DataChangeNotifier) {
         self.reviews = reviews
-        self.configuration = configuration
+        currentConfiguration = configuration
         self.notifier = notifier
+    }
+
+    convenience init(reviews: ReviewRepository, configuration: AppConfiguration, notifier: DataChangeNotifier) {
+        self.init(reviews: reviews, configuration: { configuration }, notifier: notifier)
     }
 
     func issues(for draft: ReviewDraft) -> [ReviewValidator.Issue] {
@@ -58,13 +64,18 @@ nonisolated struct SubmissionOutcome: Hashable, Sendable {
 /// Venue submissions go to `venue_submissions` (pending Admin review), never to the public catalog.
 final class SubmissionService {
     private let submissions: SubmissionRepository
-    private let configuration: AppConfiguration
+    private let currentConfiguration: () -> AppConfiguration
     private let notifier: DataChangeNotifier
+    private var configuration: AppConfiguration { currentConfiguration() }
 
-    init(submissions: SubmissionRepository, configuration: AppConfiguration, notifier: DataChangeNotifier) {
+    init(submissions: SubmissionRepository, configuration: @escaping () -> AppConfiguration, notifier: DataChangeNotifier) {
         self.submissions = submissions
-        self.configuration = configuration
+        currentConfiguration = configuration
         self.notifier = notifier
+    }
+
+    convenience init(submissions: SubmissionRepository, configuration: AppConfiguration, notifier: DataChangeNotifier) {
+        self.init(submissions: submissions, configuration: { configuration }, notifier: notifier)
     }
 
     func issues(for draft: VenueSubmissionDraft) -> [SubmissionValidator.Issue] { SubmissionValidator.issues(draft) }
@@ -89,11 +100,33 @@ final class SubmissionService {
         return SubmissionOutcome(receipt: receipt, failedPhotos: failed)
     }
 
-    func resubmit(id: UUID, draft: VenueSubmissionDraft) async throws {
+    /// Resubmits after an Admin asked for changes. Photo edits run first — remove, then upload — and the
+    /// submission goes back to the queue even if some photos fail (the count is reported, nothing else is lost).
+    @discardableResult
+    func resubmit(id: UUID, draft: VenueSubmissionDraft, removingPhotos removed: [UUID] = [],
+                  addingPhotos added: [PhotoUpload] = [], keptPhotoCount: Int = 0) async throws -> Int {
         try SubmissionValidator.validate(draft)
+        var failed = 0
+        for photoID in removed {
+            do {
+                try await submissions.removePhoto(id: photoID)
+            } catch BackendError.notFound {
+                // Already removed (e.g. a retry after a failed resubmit).
+            } catch {
+                failed += 1
+            }
+        }
+        let room = max(0, configuration.submissionMaxPhotos - keptPhotoCount - failed)
+        for photo in added.prefix(room) {
+            do { try await submissions.uploadPhoto(submissionID: id, photo: photo) } catch { failed += 1 }
+        }
+        failed += max(0, added.count - room)
         try await submissions.resubmit(id: id, draft: draft)
         notifier.publish(.submissionsChanged)
+        return failed
     }
+
+    func photos(submissionID: UUID) async throws -> [SubmissionPhoto] { try await submissions.photos(submissionID: submissionID) }
 
     func withdraw(id: UUID) async throws {
         try await submissions.withdraw(id: id)

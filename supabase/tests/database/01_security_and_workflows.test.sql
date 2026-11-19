@@ -235,15 +235,17 @@ reset role;
 select is((select count(*) from public.favorites where user_id = '10000000-0000-4000-8000-000000000001'), 1::bigint,
           'Another user cannot delete my favorite');
 
+-- Claim Ownership was removed (20261119000100). Memberships are now granted only by trusted SQL.
+select ok(not private.can_manage_venue('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003'),
+          'Nobody manages a venue without a membership');
+insert into public.business_accounts (id, name, created_by)
+values ('50000000-0000-4000-8000-000000000001', 'Empty Cafe Co.', '10000000-0000-4000-8000-000000000003');
+update public.venues set business_id = '50000000-0000-4000-8000-000000000001' where id = '20000000-0000-4000-8000-000000000002';
+insert into public.business_memberships (business_id, user_id, role, status, approved_by)
+values ('50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'owner', 'active', '10000000-0000-4000-8000-000000000004');
 set local role authenticated;
-select pg_temp.login('10000000-0000-4000-8000-000000000003');
-insert into t values ('cl1', public.request_venue_claim(gen_random_uuid(), '20000000-0000-4000-8000-000000000002', 'Empty Cafe Co.'));
-select ok(not private.can_manage_venue('20000000-0000-4000-8000-000000000002'), 'A pending claim grants nothing');
-select pg_temp.login('10000000-0000-4000-8000-000000000004');
-select is((public.admin_decide_venue_claim(((select v->>'claim_id' from t where k = 'cl1'))::uuid, true, 'Verified by phone'))->>'status',
-          'approved', 'Admin approves a claim');
 select ok(private.can_manage_venue('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003'),
-          'Approved claimant manages the venue');
+          'An active member manages the venue');
 select ok(not private.can_manage_venue('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002'),
           'Other users do not manage the venue');
 select ok(not private.can_manage_venue('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003'),

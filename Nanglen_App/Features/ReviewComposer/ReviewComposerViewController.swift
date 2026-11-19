@@ -1,4 +1,3 @@
-import PhotosUI
 import UIKit
 
 /// Review composer (Storyboard scene `ReviewComposerViewController`, presented in a navigation sheet).
@@ -24,6 +23,8 @@ final class ReviewComposerViewController: UIViewController {
     private var viewModel: ReviewComposerViewModel?
     private weak var container: AppContainer?
     private let placeholderLabel = UILabel()
+    private let photoPicker = PhotoSourcePicker()
+    private var keyboard: FormKeyboardHandler?
 
     func configure(viewModel: ReviewComposerViewModel, container: AppContainer) {
         self.viewModel = viewModel
@@ -54,18 +55,19 @@ final class ReviewComposerViewController: UIViewController {
         purposeTitleLabel.text = L10n.Review.purpose + " · " + L10n.Common.optional
         tagsTitleLabel.text = L10n.Review.tags
         commentTitleLabel.text = L10n.Review.comment + " · " + L10n.Common.optional
-        photosTitleLabel.text = L10n.Review.photos
+        photosTitleLabel.text = L10n.Review.photos(viewModel.configuration.reviewMaxPhotos)
 
         verificationView.onAction = { [weak self] action in self?.handle(action) }
         purposeChips.allowsMultipleSelection = false
         purposeChips.configure(items: VisitPurpose.allCases.map { .init(id: $0.rawValue, title: $0.title, symbol: $0.symbol) },
                                selection: Set([viewModel.state.draft.purpose?.rawValue].compactMap { $0 }))
         purposeChips.onChange = { [weak self] selection in self?.viewModel?.setPurpose(selection.first) }
-        tagsChips.maximumSelection = viewModel.configuration.reviewMaxTags
+        // No "pick up to N" rule for reviewers: the limit equals the catalog size (server setting review_max_tags).
+        let maxTags = viewModel.configuration.reviewMaxTags
+        tagsChips.maximumSelection = maxTags >= ReviewTag.catalog.count ? nil : maxTags
         tagsChips.configure(items: ReviewTag.catalog.map { .init(id: $0.slug, title: $0.title, symbol: $0.symbol) },
                             selection: Set(viewModel.state.draft.tags))
         tagsChips.onChange = { [weak self] selection in self?.viewModel?.setTags(selection) }
-        tagsChips.onLimitReached = { [weak self] in self?.showToast(L10n.Review.tooManyTags) }
 
         commentTextView.font = AppTypography.body
         commentTextView.adjustsFontForContentSizeCategory = true
@@ -93,7 +95,8 @@ final class ReviewComposerViewController: UIViewController {
         photoStrip.onRemove = { [weak self] index in self?.viewModel?.removePhoto(at: index) }
         ratingControl.setValue(viewModel.state.draft.rating ?? 0)
         submitButton.accessibilityIdentifier = "composer.submit"
-        scrollView.keyboardDismissMode = .interactive
+        keyboard = FormKeyboardHandler(scrollView: scrollView, rootView: view)
+        keyboard?.manage([commentTextView])
     }
 
     private func render(_ state: ReviewComposerViewModel.State) {
@@ -146,12 +149,11 @@ final class ReviewComposerViewController: UIViewController {
     }
 
     private func pickPhoto() {
-        var configuration = PHPickerConfiguration()
-        configuration.filter = .images
-        configuration.selectionLimit = 1
-        let picker = PHPickerViewController(configuration: configuration)
-        picker.delegate = self
-        present(picker, animated: true)
+        guard let viewModel else { return }
+        view.endEditing(true)
+        photoPicker.present(from: self, sourceView: photoStrip.addButton, limit: viewModel.remainingPhotoSlots) { [weak self] images in
+            self?.viewModel?.addPhotos(images)
+        }
     }
 
     // MARK: Actions
@@ -179,16 +181,5 @@ extension ReviewComposerViewController: UITextViewDelegate {
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         let current = textView.text as NSString
         return current.replacingCharacters(in: range, with: text).count <= (viewModel?.configuration.reviewMaxBodyLength ?? 500)
-    }
-}
-
-extension ReviewComposerViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        picker.dismiss(animated: true)
-        guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
-        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
-            guard let image = object as? UIImage else { return }
-            Task { @MainActor in self?.viewModel?.addPhoto(image) }
-        }
     }
 }

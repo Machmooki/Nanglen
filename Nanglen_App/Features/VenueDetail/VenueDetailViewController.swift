@@ -7,7 +7,6 @@ final class VenueDetailViewController: UIViewController {
     private enum Segue {
         static let presentReviewComposer = "presentReviewComposer"
         static let presentSignIn = "presentSignIn"
-        static let presentClaim = "presentClaim"
     }
 
     @IBOutlet private weak var scrollView: UIScrollView!
@@ -31,7 +30,6 @@ final class VenueDetailViewController: UIViewController {
     @IBOutlet private weak var infoTitleLabel: UILabel!
     @IBOutlet private weak var infoStackView: UIStackView!
     @IBOutlet private weak var sourceLabel: UILabel!
-    @IBOutlet private weak var claimButton: UIButton!
     @IBOutlet private weak var favoriteBarButton: UIBarButtonItem!
 
     private var viewModel: VenueDetailViewModel?
@@ -94,12 +92,6 @@ final class VenueDetailViewController: UIViewController {
         var more = UIButton.Configuration.plain()
         more.title = L10n.Explore.loadMore
         loadMoreReviewsButton.configuration = more
-        var claim = UIButton.Configuration.plain()
-        claim.title = L10n.Detail.claim
-        claim.image = UIImage(systemName: "building.2")
-        claim.imagePadding = AppSpacing.xs
-        claim.baseForegroundColor = AppColors.textSecondary
-        claimButton.configuration = claim
         writeReviewButton.accessibilityIdentifier = "detail.writeReview"
         favoriteBarButton.accessibilityIdentifier = "detail.favorite"
         setUpHeroAndMap()
@@ -173,7 +165,6 @@ final class VenueDetailViewController: UIViewController {
 
         renderReviews(state)
         renderInfo(state)
-        claimButton.isHidden = !(viewModel?.canClaim ?? false)
         if state.detail?.isManagedByMe == true {
             sourceLabel.text = [sourceLabel.text, L10n.Detail.managedByYou].compactMap { $0 }.joined(separator: "\n")
         }
@@ -242,6 +233,9 @@ final class VenueDetailViewController: UIViewController {
                 let card = ReviewCardView()
                 card.configure(review, photoURLs: viewModel?.photoURLs(for: review.photoPaths) ?? [])
                 card.onReport = { [weak self] in self?.presentReport(for: review) }
+                card.onPhotoTap = { [weak self] urls, index in
+                    self?.present(PhotoViewerViewController(urls: urls, startIndex: index), animated: true)
+                }
                 return card
             })
         }
@@ -335,14 +329,6 @@ final class VenueDetailViewController: UIViewController {
         viewModel?.loadMoreReviews()
     }
 
-    @IBAction private func claimTapped(_ sender: UIButton) {
-        if container?.session.capabilities?.isRegistered == true {
-            performSegue(withIdentifier: Segue.presentClaim, sender: self)
-        } else {
-            presentRegistrationPrompt(message: L10n.Account.registeredRequiredClaim)
-        }
-    }
-
     private func presentRegistrationPrompt(message: String) {
         let alert = UIAlertController(title: L10n.Account.registeredRequiredTitle, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: L10n.Common.cancel, style: .cancel))
@@ -383,8 +369,6 @@ final class VenueDetailViewController: UIViewController {
                 container: container)
         case Segue.presentSignIn:
             (navigation.topViewController as? SignInViewController)?.configure(viewModel: container.makeSignInViewModel(), isDemo: container.isDemo)
-        case Segue.presentClaim:
-            (navigation.topViewController as? ClaimVenueViewController)?.configure(viewModel: container.makeClaimViewModel(venue: viewModel.state.venue))
         default:
             break
         }
