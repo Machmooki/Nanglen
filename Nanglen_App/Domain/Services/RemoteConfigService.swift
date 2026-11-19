@@ -55,7 +55,7 @@ final class RemoteConfigService {
     }
 }
 
-/// Where the last server config is kept between launches (GRDB `local_drafts` in the app).
+/// Where the last server config is kept between launches (GRDB `app_kv` in the app).
 protocol RemoteConfigCaching: AnyObject {
     func cachedRemoteConfig() -> RemoteConfigValues?
     func storeRemoteConfig(_ values: RemoteConfigValues)

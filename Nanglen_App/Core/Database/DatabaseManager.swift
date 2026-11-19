@@ -26,7 +26,7 @@ nonisolated final class DatabaseManager: Sendable {
             for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true
         ).appendingPathComponent("Database", isDirectory: true)
         if reset { try? FileManager.default.removeItem(at: directory) }
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try FileManager.default.createProtectedDirectory(at: directory)
         return try at(path: directory.appendingPathComponent(fileName).path)
     }
 

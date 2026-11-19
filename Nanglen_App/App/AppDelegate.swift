@@ -23,6 +23,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Server limits (private.app_settings). Cached values are already applied; this picks up edits.
         let remoteConfig = container.remoteConfig
         let configRefresh = Task { await remoteConfig.refresh() }
+        // Cache eviction runs in the background; queued photos are retried once the session is up
+        // (`PendingUploadService` listens for `.sessionChanged`).
+        container.startMaintenance()
         startupTask = Task {
             _ = await sessionStart.value
             await configRefresh.value

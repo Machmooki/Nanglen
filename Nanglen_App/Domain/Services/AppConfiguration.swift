@@ -30,6 +30,9 @@ nonisolated struct AppConfiguration: Sendable {
     var venueCacheFreshness: TimeInterval = 15 * 60
     /// Cached cards older than this are not shown at all.
     var venueCacheMaxAge: TimeInterval = 7 * 24 * 60 * 60
+    /// LRU caps applied by `LocalCache.prune` at launch (rows beyond these, least recently read first, are deleted).
+    var venueCacheMaxEntries = 2_000
+    var venueDetailCacheMaxEntries = 300
     var reviewMaxBodyLength = 500
     /// No practical limit: a reviewer may pick every tag in the catalog.
     var reviewMaxTags = ReviewTag.catalog.count

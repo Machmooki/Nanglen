@@ -253,6 +253,6 @@ final class AddPlaceViewModel {
 
     func venueSummary(id: UUID) async -> VenueSummary? {
         if let cached = await venues.cachedSummary(id: id) { return cached.venue }
-        return try? await venues.detail(id: id).summary
+        return try? await venues.detail(id: id).detail.summary
     }
 }

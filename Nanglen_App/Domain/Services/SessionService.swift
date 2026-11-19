@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// Owns the signed-in identity (Guest or Registered) and its *server-derived* capabilities.
 /// Capabilities are refreshed from the backend; nothing here grants privileges locally.
@@ -6,13 +7,22 @@ final class SessionService {
     private let auth: AuthRemote
     private let favorites: FavoriteRepository
     private let notifier: DataChangeNotifier
+    private let cache: LocalCache?
+    private let uploads: PendingUploadStore?
     private(set) var capabilities: UserCapabilities?
     private var starting: Task<Void, Error>?
+    private let logger = Logger(subsystem: "Mach.Nanglen-App", category: "Session")
 
-    init(auth: AuthRemote, favorites: FavoriteRepository, notifier: DataChangeNotifier) {
+    /// - Parameters:
+    ///   - cache, uploads: where the user's private local data lives; wiped when that user leaves this device
+    ///     (sign out, account switch, account deletion). Shared caches (venues, details, `app_kv`) are kept.
+    init(auth: AuthRemote, favorites: FavoriteRepository, notifier: DataChangeNotifier,
+         cache: LocalCache? = nil, uploads: PendingUploadStore? = nil) {
         self.auth = auth
         self.favorites = favorites
         self.notifier = notifier
+        self.cache = cache
+        self.uploads = uploads
     }
 
     var mode: BackendMode { auth.mode }
@@ -62,14 +72,18 @@ final class SessionService {
     }
 
     func confirmEmailSignIn(email: String, code: String) async throws {
+        let previous = capabilities?.userID
         try await auth.confirmEmailSignIn(email: email, code: try Self.cleanCode(code))
+        await removeLocalData(of: previous)
         capabilities = nil
         favorites.reset()
         try await refresh()
     }
 
     func deleteAccount() async throws {
+        let previous = capabilities?.userID
         try await auth.deleteAccount()
+        await removeLocalData(of: previous)
         capabilities = nil
         favorites.reset()
         try await refresh()
@@ -92,9 +106,22 @@ final class SessionService {
     }
 
     func signOut() async throws {
+        let previous = capabilities?.userID
         try await auth.signOut()
+        await removeLocalData(of: previous)
         capabilities = nil
         favorites.reset()
         try await refresh()
+    }
+
+    /// Deletes the user's drafts, cached favorites and queued photos (rows and files).
+    private func removeLocalData(of userID: UUID?) async {
+        guard let userID, let cache else { return }
+        do {
+            let files = try await cache.removeUserData(userID: userID)
+            uploads?.deleteFiles(files)
+        } catch {
+            logger.error("Could not remove local data of the previous user: \(error.localizedDescription, privacy: .public)")
+        }
     }
 }

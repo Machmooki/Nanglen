@@ -36,6 +36,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
+    /// Back from the background: retry photos that failed to upload while offline.
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        (UIApplication.shared.delegate as? AppDelegate)?.container.pendingUploadService.trigger()
+    }
+
     /// Covers the app with the animated splash, then fades it out once both the intro
     /// and the launch work have finished (the launch work is cut off at `startupTimeout`).
     private func showSplash(in window: UIWindow, startup: Task<Void, Never>?) {

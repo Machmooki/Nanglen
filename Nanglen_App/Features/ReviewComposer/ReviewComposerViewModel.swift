@@ -117,6 +117,8 @@ final class ReviewComposerViewModel {
                 var message = outcome.result.revisionNumber > 1 ? L10n.Review.updated : L10n.Review.published
                 if outcome.failedPhotos > 0 {
                     message += "\n" + L10n.Review.photosFailed(outcome.failedPhotos)
+                } else if outcome.queuedPhotos > 0 {
+                    message += "\n" + L10n.Review.photosQueued(outcome.queuedPhotos)
                 } else if !photos.isEmpty, !configuration.reviewMediaAutoApprove {
                     message += "\n" + L10n.Review.photosPending
                 }

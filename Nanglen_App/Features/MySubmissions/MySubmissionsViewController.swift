@@ -101,7 +101,7 @@ final class MySubmissionsViewController: UITableViewController {
     private func openVenue(_ id: UUID) {
         guard let container else { return }
         Task {
-            guard let detail = try? await container.venues.detail(id: id),
+            guard let detail = try? await container.venues.detail(id: id).detail,
                   let controller = storyboard?.instantiateViewController(withIdentifier: "VenueDetailViewController") as? VenueDetailViewController else { return }
             controller.configure(viewModel: container.makeVenueDetailViewModel(venue: detail.summary), container: container)
             navigationController?.pushViewController(controller, animated: true)

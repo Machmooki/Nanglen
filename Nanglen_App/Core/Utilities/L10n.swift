@@ -135,6 +135,9 @@ enum L10n {
         static var sortRelevant: String { String(localized: "Relevant") }
         static var sortRecent: String { String(localized: "Recent") }
         static var noReviewsMessage: String { String(localized: "Be the first to review after visiting in person") }
+        static var offlineBanner: String { String(localized: "Offline · Showing saved details that may be out of date") }
+        static func offlineSince(_ relative: String) -> String { String(localized: "Offline · Details saved \(relative) may be out of date") }
+        static var reviewsOffline: String { String(localized: "Reviews aren't available offline") }
         static var verifiedVisit: String { String(localized: "Verified visit") }
         static var you: String { String(localized: "You") }
         static var info: String { String(localized: "Place info") }
@@ -188,6 +191,7 @@ enum L10n {
         static var published: String { String(localized: "Review published. Thank you!") }
         static var updated: String { String(localized: "Review updated") }
         static func photosFailed(_ count: Int) -> String { String(localized: "\(count) photos failed to upload. Your review was published.") }
+        static func photosQueued(_ count: Int) -> String { String(localized: "\(count) photos will upload when you're back online. Your review was published.") }
         static var photosPending: String { String(localized: "Photos appear after they're reviewed") }
         static var draftSaved: String { String(localized: "Draft saved on this device. Not published yet.") }
         static var draftRestored: String { String(localized: "Restored your unsent draft") }

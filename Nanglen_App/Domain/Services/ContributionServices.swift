@@ -2,8 +2,18 @@ import Foundation
 
 nonisolated struct ReviewPublishOutcome: Hashable, Sendable {
     var result: ReviewSubmissionResult
-    /// Photos that could not be uploaded. The review itself is published.
+    /// Photos that could not be uploaded and were not queued. The review itself is published.
     var failedPhotos: Int
+    /// Photos that failed for a network reason and will be retried by `PendingUploadService`.
+    var queuedPhotos: Int = 0
+}
+
+/// Shared by both services: queues a photo whose upload failed because the device is offline.
+/// Returns true when it was queued (the caller then doesn't count it as failed).
+private func queueIfOffline(_ error: Error, photo: PhotoUpload, kind: PendingUploadKind, targetID: UUID, venueID: UUID?,
+                            userID: UUID?, uploads: PendingUploadStore?, now: Date) async -> Bool {
+    guard NetworkFailure.isOffline(error), let userID, let uploads else { return false }
+    return await uploads.enqueue(photo, kind: kind, targetID: targetID, venueID: venueID, userID: userID, now: now)
 }
 
 /// Business rules for publishing a review. Publication requires a current server verification;
@@ -12,17 +22,28 @@ final class ReviewService {
     private let reviews: ReviewRepository
     private let currentConfiguration: () -> AppConfiguration
     private let notifier: DataChangeNotifier
+    private let currentUserID: () async -> UUID?
+    private let uploads: PendingUploadStore?
+    private let clock: () -> Date
     private var configuration: AppConfiguration { currentConfiguration() }
 
-    /// - Parameter configuration: read on every use, so server limits fetched after launch apply immediately.
-    init(reviews: ReviewRepository, configuration: @escaping () -> AppConfiguration, notifier: DataChangeNotifier) {
+    /// - Parameters:
+    ///   - configuration: read on every use, so server limits fetched after launch apply immediately.
+    ///   - userID: the signed-in user; drafts are stored per user and nothing is saved without one.
+    ///   - uploads: photo outbox for uploads that fail offline (nil: such photos count as failed).
+    init(reviews: ReviewRepository, configuration: @escaping () -> AppConfiguration, notifier: DataChangeNotifier,
+         userID: @escaping () async -> UUID?, uploads: PendingUploadStore? = nil, clock: @escaping () -> Date = { Date() }) {
         self.reviews = reviews
         currentConfiguration = configuration
         self.notifier = notifier
+        currentUserID = userID
+        self.uploads = uploads
+        self.clock = clock
     }
 
-    convenience init(reviews: ReviewRepository, configuration: AppConfiguration, notifier: DataChangeNotifier) {
-        self.init(reviews: reviews, configuration: { configuration }, notifier: notifier)
+    convenience init(reviews: ReviewRepository, configuration: AppConfiguration, notifier: DataChangeNotifier,
+                     userID: @escaping () async -> UUID?, uploads: PendingUploadStore? = nil) {
+        self.init(reviews: reviews, configuration: { configuration }, notifier: notifier, userID: userID, uploads: uploads)
     }
 
     func issues(for draft: ReviewDraft) -> [ReviewValidator.Issue] {
@@ -36,29 +57,49 @@ final class ReviewService {
         let submission = ReviewSubmission(
             venueID: draft.venueID, verificationID: verificationID, rating: rating, purpose: draft.purpose,
             tags: Array(Set(draft.tags)).sorted(), body: body.isEmpty ? nil : body, idempotencyKey: draft.idempotencyKey)
+        let userID = await currentUserID()
         let result: ReviewSubmissionResult
         do {
             result = try await reviews.submit(submission)
         } catch {
-            await reviews.saveDraft(draft)
+            if let userID { await reviews.saveDraft(draft, userID: userID) }
             throw error
         }
         var failed = 0
+        var queued = 0
         for photo in photos.prefix(configuration.reviewMaxPhotos) {
-            do { try await reviews.uploadPhoto(revisionID: result.revisionID, photo: photo) } catch { failed += 1 }
+            do {
+                try await reviews.uploadPhoto(revisionID: result.revisionID, photo: photo)
+            } catch {
+                if await queueIfOffline(error, photo: photo, kind: .reviewPhoto, targetID: result.revisionID, venueID: draft.venueID,
+                                        userID: userID, uploads: uploads, now: clock()) {
+                    queued += 1
+                } else {
+                    failed += 1
+                }
+            }
         }
-        await reviews.deleteDraft(venueID: draft.venueID)
+        if let userID { await reviews.deleteDraft(venueID: draft.venueID, userID: userID) }
         notifier.publish(.reviewSubmitted(venueID: draft.venueID))
-        return ReviewPublishOutcome(result: result, failedPhotos: failed)
+        return ReviewPublishOutcome(result: result, failedPhotos: failed, queuedPhotos: queued)
     }
 
-    func savedDraft(venueID: UUID) async -> ReviewDraft? { await reviews.draft(venueID: venueID) }
-    func saveDraft(_ draft: ReviewDraft) async { await reviews.saveDraft(draft) }
+    func savedDraft(venueID: UUID) async -> ReviewDraft? {
+        guard let userID = await currentUserID() else { return nil }
+        return await reviews.draft(venueID: venueID, userID: userID)
+    }
+
+    func saveDraft(_ draft: ReviewDraft) async {
+        guard let userID = await currentUserID() else { return }
+        await reviews.saveDraft(draft, userID: userID)
+    }
 }
 
 nonisolated struct SubmissionOutcome: Hashable, Sendable {
     var receipt: SubmissionReceipt
     var failedPhotos: Int
+    /// Photos queued for retry after a network failure.
+    var queuedPhotos: Int = 0
 }
 
 /// Venue submissions go to `venue_submissions` (pending Admin review), never to the public catalog.
@@ -66,38 +107,57 @@ final class SubmissionService {
     private let submissions: SubmissionRepository
     private let currentConfiguration: () -> AppConfiguration
     private let notifier: DataChangeNotifier
+    private let currentUserID: () async -> UUID?
+    private let uploads: PendingUploadStore?
+    private let clock: () -> Date
     private var configuration: AppConfiguration { currentConfiguration() }
 
-    init(submissions: SubmissionRepository, configuration: @escaping () -> AppConfiguration, notifier: DataChangeNotifier) {
+    init(submissions: SubmissionRepository, configuration: @escaping () -> AppConfiguration, notifier: DataChangeNotifier,
+         userID: @escaping () async -> UUID?, uploads: PendingUploadStore? = nil, clock: @escaping () -> Date = { Date() }) {
         self.submissions = submissions
         currentConfiguration = configuration
         self.notifier = notifier
+        currentUserID = userID
+        self.uploads = uploads
+        self.clock = clock
     }
 
-    convenience init(submissions: SubmissionRepository, configuration: AppConfiguration, notifier: DataChangeNotifier) {
-        self.init(submissions: submissions, configuration: { configuration }, notifier: notifier)
+    convenience init(submissions: SubmissionRepository, configuration: AppConfiguration, notifier: DataChangeNotifier,
+                     userID: @escaping () async -> UUID?, uploads: PendingUploadStore? = nil) {
+        self.init(submissions: submissions, configuration: { configuration }, notifier: notifier, userID: userID, uploads: uploads)
     }
 
     func issues(for draft: VenueSubmissionDraft) -> [SubmissionValidator.Issue] { SubmissionValidator.issues(draft) }
 
     func submit(_ draft: VenueSubmissionDraft, photos: [PhotoUpload]) async throws -> SubmissionOutcome {
         try SubmissionValidator.validate(draft)
+        let userID = await currentUserID()
         let receipt: SubmissionReceipt
         do {
             receipt = try await submissions.create(draft)
         } catch {
-            await submissions.saveDraft(draft)
+            if let userID { await submissions.saveDraft(draft, userID: userID) }
             throw error
         }
         var failed = 0
+        var queued = 0
         if case .submitted(let id, _, _) = receipt {
             for photo in photos.prefix(configuration.submissionMaxPhotos) {
-                do { try await submissions.uploadPhoto(submissionID: id, photo: photo) } catch { failed += 1 }
+                do {
+                    try await submissions.uploadPhoto(submissionID: id, photo: photo)
+                } catch {
+                    if await queueIfOffline(error, photo: photo, kind: .submissionPhoto, targetID: id, venueID: nil,
+                                            userID: userID, uploads: uploads, now: clock()) {
+                        queued += 1
+                    } else {
+                        failed += 1
+                    }
+                }
             }
         }
-        await submissions.deleteDraft()
+        if let userID { await submissions.deleteDraft(userID: userID) }
         notifier.publish(.submissionsChanged)
-        return SubmissionOutcome(receipt: receipt, failedPhotos: failed)
+        return SubmissionOutcome(receipt: receipt, failedPhotos: failed, queuedPhotos: queued)
     }
 
     /// Resubmits after an Admin asked for changes. Photo edits run first — remove, then upload — and the
@@ -134,6 +194,13 @@ final class SubmissionService {
     }
 
     func mine() async throws -> [VenueSubmission] { try await submissions.mine() }
-    func savedDraft() async -> VenueSubmissionDraft? { await submissions.draft() }
-    func saveDraft(_ draft: VenueSubmissionDraft) async { await submissions.saveDraft(draft) }
+    func savedDraft() async -> VenueSubmissionDraft? {
+        guard let userID = await currentUserID() else { return nil }
+        return await submissions.draft(userID: userID)
+    }
+
+    func saveDraft(_ draft: VenueSubmissionDraft) async {
+        guard let userID = await currentUserID() else { return }
+        await submissions.saveDraft(draft, userID: userID)
+    }
 }

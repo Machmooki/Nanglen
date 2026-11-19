@@ -8,6 +8,20 @@ nonisolated enum DataSourceState: Hashable, Sendable {
     case offline(cachedAt: Date?)
 }
 
+/// Errors that mean "the backend could not be reached" (as opposed to a server answer). Offline
+/// fallbacks and the photo outbox use this one rule.
+nonisolated enum NetworkFailure {
+    static func isOffline(_ error: Error) -> Bool {
+        (error as? BackendError) == .network || error is URLError
+    }
+}
+
+/// A venue detail plus where it came from. Offline details never carry per-user review/manager state.
+nonisolated struct VenueDetailResult: Hashable, Sendable {
+    var detail: VenueDetail
+    var source: DataSourceState
+}
+
 nonisolated struct VenueResults: Hashable, Sendable {
     var venues: [VenueSummary]
     var hasMore: Bool
@@ -21,13 +35,17 @@ final class VenueRepository {
     private let remote: VenueRemote
     private let cache: LocalCache
     private let configuration: AppConfiguration
+    private let favorites: FavoriteRepository?
     private let clock: () -> Date
     private let logger = Logger(subsystem: "Mach.Nanglen-App", category: "VenueRepository")
 
-    init(remote: VenueRemote, cache: LocalCache, configuration: AppConfiguration, clock: @escaping () -> Date = { Date() }) {
+    /// - Parameter favorites: fills `isFavorite` on offline details (the cache never stores it).
+    init(remote: VenueRemote, cache: LocalCache, configuration: AppConfiguration, favorites: FavoriteRepository? = nil,
+         clock: @escaping () -> Date = { Date() }) {
         self.remote = remote
         self.cache = cache
         self.configuration = configuration
+        self.favorites = favorites
         self.clock = clock
     }
 
@@ -36,11 +54,8 @@ final class VenueRepository {
             let page = try await remote.searchVenues(query)
             try? await cache.storeVenues(page.venues, at: clock())
             return VenueResults(venues: page.venues, hasMore: page.hasMore, source: .live)
-        } catch is CancellationError {
-            throw CancellationError()
-        } catch let error as BackendError where error == .network {
-            return try await cachedResults(for: query, error: error)
-        } catch let error as URLError {
+        } catch {
+            guard NetworkFailure.isOffline(error) else { throw error }
             return try await cachedResults(for: query, error: error)
         }
     }
@@ -65,10 +80,26 @@ final class VenueRepository {
                             source: .offline(cachedAt: cached.map(\.cachedAt).min()))
     }
 
-    func detail(id: UUID) async throws -> VenueDetail {
-        let detail = try await remote.venueDetail(id: id)
-        try? await cache.storeVenues([detail.summary], at: clock())
-        return detail
+    /// Live detail (cached without per-user fields), or the cached detail labelled `.offline` when the
+    /// backend can't be reached. Other errors (e.g. `.notFound`) are thrown as-is.
+    func detail(id: UUID) async throws -> VenueDetailResult {
+        do {
+            let detail = try await remote.venueDetail(id: id)
+            let now = clock()
+            try? await cache.storeVenues([detail.summary], at: now)
+            try? await cache.storeVenueDetail(detail, at: now)
+            return VenueDetailResult(detail: detail, source: .live)
+        } catch {
+            guard NetworkFailure.isOffline(error) else { throw error }
+            let now = clock()
+            guard let cached = try? await cache.cachedVenueDetail(
+                id: id, notOlderThan: now.addingTimeInterval(-configuration.venueCacheMaxAge), accessedAt: now)
+            else { throw error }
+            logger.notice("Detail offline, using cache: \(error.localizedDescription, privacy: .public)")
+            var detail = cached.detail
+            detail.isFavorite = favorites?.contains(id) ?? false
+            return VenueDetailResult(detail: detail, source: .offline(cachedAt: cached.cachedAt))
+        }
     }
 
     func cachedSummary(id: UUID) async -> CachedVenue? {
@@ -166,11 +197,17 @@ final class ReviewRepository {
     func uploadPhoto(revisionID: UUID, photo: PhotoUpload) async throws { try await remote.uploadReviewPhoto(revisionID: revisionID, photo: photo) }
     func flag(reviewID: UUID, reason: FlagReason, note: String?) async throws { try await remote.flagReview(id: reviewID, reason: reason, note: note) }
 
-    // Local drafts — preserved when verification or upload fails; never shown as published.
+    // Local drafts — per user; preserved when verification or upload fails; never shown as published.
     private func key(_ venueID: UUID) -> String { "review-draft-\(venueID.uuidString)" }
-    func draft(venueID: UUID) async -> ReviewDraft? { try? await cache.draft(ReviewDraft.self, key: key(venueID)) }
-    func saveDraft(_ draft: ReviewDraft) async { try? await cache.saveDraft(draft, key: key(draft.venueID)) }
-    func deleteDraft(venueID: UUID) async { try? await cache.deleteDraft(key: key(venueID)) }
+    func draft(venueID: UUID, userID: UUID) async -> ReviewDraft? {
+        try? await cache.draft(ReviewDraft.self, key: key(venueID), userID: userID)
+    }
+    func saveDraft(_ draft: ReviewDraft, userID: UUID) async {
+        try? await cache.saveDraft(draft, key: key(draft.venueID), userID: userID)
+    }
+    func deleteDraft(venueID: UUID, userID: UUID) async {
+        try? await cache.deleteDraft(key: key(venueID), userID: userID)
+    }
 }
 
 // MARK: - Submissions, business, admin
@@ -193,9 +230,13 @@ final class SubmissionRepository {
     func photos(submissionID: UUID) async throws -> [SubmissionPhoto] { try await remote.submissionPhotos(submissionID: submissionID) }
     func removePhoto(id: UUID) async throws { try await remote.removeSubmissionPhoto(id: id) }
 
-    func draft() async -> VenueSubmissionDraft? { try? await cache.draft(VenueSubmissionDraft.self, key: Self.draftKey) }
-    func saveDraft(_ draft: VenueSubmissionDraft) async { try? await cache.saveDraft(draft, key: Self.draftKey) }
-    func deleteDraft() async { try? await cache.deleteDraft(key: Self.draftKey) }
+    func draft(userID: UUID) async -> VenueSubmissionDraft? {
+        try? await cache.draft(VenueSubmissionDraft.self, key: Self.draftKey, userID: userID)
+    }
+    func saveDraft(_ draft: VenueSubmissionDraft, userID: UUID) async {
+        try? await cache.saveDraft(draft, key: Self.draftKey, userID: userID)
+    }
+    func deleteDraft(userID: UUID) async { try? await cache.deleteDraft(key: Self.draftKey, userID: userID) }
 }
 
 /// Admin operations. UI visibility follows server capabilities, but authorization is enforced by

@@ -396,8 +396,21 @@ final class SupabaseBackend: NanglenBackend {
             let path = "\(parent.uuidString.lowercased())/\(UUID().uuidString.lowercased()).\(photo.fileExtension)"
             try await client.storage.from(bucket.rawValue).upload(path, data: photo.data, options: FileOptions(contentType: photo.mimeType, upsert: false))
             return path
+        } catch let error as StorageError {
+            throw Self.mapStorage(error)
         } catch {
             throw Self.map(error)
+        }
+    }
+
+    /// Storage answers carry an HTTP status: 4xx are rejections (retrying won't help), the rest are server-side.
+    /// The photo outbox relies on this split to decide between retrying and giving up.
+    nonisolated static func mapStorage(_ error: StorageError) -> BackendError {
+        switch error.statusCode.flatMap(Int.init) {
+        case 429: .rateLimited
+        case 404: .notFound
+        case let status? where (400..<500).contains(status): .invalidInput("storage_\(status)")
+        default: .server(error.message)
         }
     }
 

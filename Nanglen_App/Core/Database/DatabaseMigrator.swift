@@ -8,6 +8,7 @@ nonisolated enum AppDatabaseMigrator {
         var migrator = DatabaseMigrator()
         V1InitialSchema.register(in: &migrator)
         V2CacheAndLegacyArchive.register(in: &migrator)
+        V3ProductionHardening.register(in: &migrator)
         return migrator
     }
 }

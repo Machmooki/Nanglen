@@ -26,6 +26,9 @@ final class AppContainer {
     let verification: VisitVerificationService
     let reviewService: ReviewService
     let submissionService: SubmissionService
+    /// Photo outbox: files + `pending_uploads` rows, retried by `pendingUploadService`.
+    let uploadStore: PendingUploadStore
+    let pendingUploadService: PendingUploadService
 
     /// Whether the cache database had to fall back to memory (data won't persist).
     let isUsingVolatileStorage: Bool
@@ -35,6 +38,7 @@ final class AppContainer {
         database: DatabaseManager,
         backend: NanglenBackend,
         isUsingVolatileStorage: Bool = false,
+        pendingUploadsDirectory: URL? = nil,
         locationManager: LocationProviding,
         placeSearchProvider: PlaceSearchProvider
     ) {
@@ -48,16 +52,43 @@ final class AppContainer {
         let remoteConfig = RemoteConfigService(base: configuration, remote: backend, cache: LocalRemoteConfigCache(cache: cache), notifier: notifier)
         self.remoteConfig = remoteConfig
 
-        venues = VenueRepository(remote: backend, cache: cache, configuration: configuration)
-        favorites = FavoriteRepository(remote: backend, cache: cache)
+        // Rows of an in-memory database don't survive a relaunch, so files would be orphaned: no outbox then.
+        let uploadStore = PendingUploadStore(cache: cache, directory: isUsingVolatileStorage ? nil : pendingUploadsDirectory)
+        self.uploadStore = uploadStore
+
+        let favorites = FavoriteRepository(remote: backend, cache: cache)
+        self.favorites = favorites
+        venues = VenueRepository(remote: backend, cache: cache, configuration: configuration, favorites: favorites)
         reviews = ReviewRepository(remote: backend, cache: cache)
         submissions = SubmissionRepository(remote: backend, cache: cache)
         admin = AdminRepository(remote: backend)
 
-        session = SessionService(auth: backend, favorites: favorites, notifier: notifier)
+        let session = SessionService(auth: backend, favorites: favorites, notifier: notifier, cache: cache, uploads: uploadStore)
+        self.session = session
+        let currentUserID: () async -> UUID? = { [session] in try? await session.requireCapabilities().userID }
         verification = VisitVerificationService(reviews: reviews, location: locationManager)
-        reviewService = ReviewService(reviews: reviews, configuration: { remoteConfig.current }, notifier: notifier)
-        submissionService = SubmissionService(submissions: submissions, configuration: { remoteConfig.current }, notifier: notifier)
+        reviewService = ReviewService(reviews: reviews, configuration: { remoteConfig.current }, notifier: notifier,
+                                      userID: currentUserID, uploads: uploadStore)
+        submissionService = SubmissionService(submissions: submissions, configuration: { remoteConfig.current }, notifier: notifier,
+                                              userID: currentUserID, uploads: uploadStore)
+        pendingUploadService = PendingUploadService(store: uploadStore, reviews: backend, submissions: backend,
+                                                    userID: { [session] in session.capabilities?.userID }, notifier: notifier)
+    }
+
+    /// Launch housekeeping off the main thread: evicts old/excess cache rows and orphaned outbox files.
+    func startMaintenance() {
+        let cache = cache
+        let uploadStore = uploadStore
+        let configuration = configuration
+        Task.detached(priority: .utility) {
+            do {
+                try await cache.prune(configuration: configuration)
+            } catch {
+                Logger(subsystem: "Mach.Nanglen-App", category: "AppContainer")
+                    .error("Cache prune failed: \(error.localizedDescription, privacy: .public)")
+            }
+            await uploadStore.removeOrphanFiles()
+        }
     }
 
     /// Production wiring: on-disk cache, real location and MapKit, Supabase when configured,
@@ -69,6 +100,8 @@ final class AppContainer {
         let reset = arguments.contains("-NanglenResetData")
         let database: DatabaseManager
         var volatile = false
+        let uploadsDirectory = PendingUploadStore.defaultDirectory()
+        if reset, let uploadsDirectory { try? FileManager.default.removeItem(at: uploadsDirectory) }
         do {
             database = try DatabaseManager.onDisk(reset: reset)
         } catch {
@@ -102,6 +135,7 @@ final class AppContainer {
             database: database,
             backend: backend,
             isUsingVolatileStorage: volatile,
+            pendingUploadsDirectory: uploadsDirectory,
             locationManager: LocationManager(),
             placeSearchProvider: MapKitPlaceSearchProvider()
         )

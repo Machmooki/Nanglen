@@ -311,7 +311,7 @@ struct ReviewLimitTests {
         var config = AppConfiguration.standard
         config.reviewMaxPhotos = 2
         let service = ReviewService(reviews: ReviewRepository(remote: backend, cache: LocalCache(database: database)),
-                                    configuration: { config }, notifier: DataChangeNotifier())
+                                    configuration: { config }, notifier: DataChangeNotifier(), userID: { UUID() })
         var draft = ReviewDraft(venueID: Fixtures.cafeID)
         draft.rating = 5
         let outcome = try await service.publish(draft, verificationID: try await verified(backend), photos: Array(repeating: photo, count: 4))
@@ -372,7 +372,7 @@ struct SubmissionPhotoEditTests {
 
         let database = try DatabaseManager.inMemory()
         let service = SubmissionService(submissions: SubmissionRepository(remote: backend, cache: LocalCache(database: database)),
-                                        configuration: { .standard }, notifier: DataChangeNotifier())
+                                        configuration: { .standard }, notifier: DataChangeNotifier(), userID: { UUID() })
         let failed = try await service.resubmit(id: id, draft: draft(), removingPhotos: [existing[0].id],
                                                 addingPhotos: [photo, photo, photo], keptPhotoCount: 2)
         #expect(failed == 0)
@@ -388,7 +388,7 @@ struct SubmissionPhotoEditTests {
         let id = try await needsChanges(backend, photos: 4)
         let database = try DatabaseManager.inMemory()
         let service = SubmissionService(submissions: SubmissionRepository(remote: backend, cache: LocalCache(database: database)),
-                                        configuration: { .standard }, notifier: DataChangeNotifier())
+                                        configuration: { .standard }, notifier: DataChangeNotifier(), userID: { UUID() })
         let failed = try await service.resubmit(id: id, draft: draft(), addingPhotos: [photo, photo, photo], keptPhotoCount: 4)
         #expect(failed == 2, "only one slot was left")
         #expect(try await backend.mySubmissions().first { $0.id == id }?.status == .pendingReview, "the rest of the edit still went through")
@@ -401,7 +401,7 @@ struct SubmissionPhotoEditTests {
         try await backend.removeSubmissionPhoto(id: photoID)
         let database = try DatabaseManager.inMemory()
         let service = SubmissionService(submissions: SubmissionRepository(remote: backend, cache: LocalCache(database: database)),
-                                        configuration: { .standard }, notifier: DataChangeNotifier())
+                                        configuration: { .standard }, notifier: DataChangeNotifier(), userID: { UUID() })
         let failed = try await service.resubmit(id: id, draft: draft(), removingPhotos: [photoID])
         #expect(failed == 0)
     }

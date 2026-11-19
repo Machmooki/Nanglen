@@ -38,6 +38,8 @@ final class VenueDetailViewController: UIViewController {
     private var renderedMedia: [String: URL] = [:]
     private var renderedTagKey: [String]?
     private let heroGallery = VenueHeroGalleryView()
+    private let offlineBanner = UIView()
+    private let offlineBannerLabel = UILabel()
     /// Apple Maps Look Around scene at the venue; used for 360° when the place has no 360° photo of its own.
     private var lookAroundScene: MKLookAroundScene?
     private var lookAroundRequestedFor: UUID?
@@ -103,6 +105,7 @@ final class VenueDetailViewController: UIViewController {
         heroGallery.onShow360 = { [weak self] in self?.show360() }
         content.insertArrangedSubview(heroGallery, at: 0)
         galleryStackView.isHidden = true
+        setUpOfflineBanner(in: content)
 
         guard let infoSection = infoStackView.superview as? UIStackView,
               let index = infoSection.arrangedSubviews.firstIndex(of: infoStackView) else { return }
@@ -116,6 +119,25 @@ final class VenueDetailViewController: UIViewController {
         map.layer.cornerRadius = AppRadius.control + 4
         map.accessibilityHint = L10n.Common.directions
         map.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(mapTapped)))
+    }
+
+    /// Offline label styled like Explore's banner, at the top of the content.
+    private func setUpOfflineBanner(in content: UIStackView) {
+        AppStyles.card(offlineBanner, radius: AppRadius.control)
+        offlineBanner.backgroundColor = StatusTone.warning.background
+        offlineBannerLabel.apply(AppTypography.footnote, color: AppColors.warning)
+        offlineBannerLabel.numberOfLines = 0
+        offlineBannerLabel.translatesAutoresizingMaskIntoConstraints = false
+        offlineBanner.addSubview(offlineBannerLabel)
+        NSLayoutConstraint.activate([
+            offlineBannerLabel.topAnchor.constraint(equalTo: offlineBanner.topAnchor, constant: 10),
+            offlineBannerLabel.bottomAnchor.constraint(equalTo: offlineBanner.bottomAnchor, constant: -10),
+            offlineBannerLabel.leadingAnchor.constraint(equalTo: offlineBanner.leadingAnchor, constant: 12),
+            offlineBannerLabel.trailingAnchor.constraint(equalTo: offlineBanner.trailingAnchor, constant: -12),
+        ])
+        offlineBanner.accessibilityIdentifier = "detail.offlineBanner"
+        offlineBanner.isHidden = true
+        content.insertArrangedSubview(offlineBanner, at: 0)
     }
 
     @objc private func mapTapped() {
@@ -139,10 +161,13 @@ final class VenueDetailViewController: UIViewController {
         favoriteBarButton.image = UIImage(systemName: state.isFavorite ? "heart.fill" : "heart")
         favoriteBarButton.tintColor = state.isFavorite ? AppColors.bad : AppColors.primary
         favoriteBarButton.accessibilityLabel = state.isFavorite ? L10n.Detail.unsave : L10n.Detail.save
+        favoriteBarButton.isEnabled = state.canToggleFavorite
+        offlineBannerLabel.text = state.offlineBannerText
+        offlineBanner.isHidden = state.offlineBannerText == nil
 
         let hasReview = state.myReview != nil
         AppStyles.primaryButton(writeReviewButton, title: hasReview ? L10n.Detail.updateReview : L10n.Detail.writeReview, systemImage: "square.and.pencil")
-        writeReviewButton.isEnabled = state.acceptsReviews
+        writeReviewButton.isEnabled = state.canWriteReview
         if let mine = state.myReview {
             myReviewLabel.text = mine.status == .published
                 ? L10n.Detail.myReviewSummary(mine.rating, Formatters.relative(mine.updatedAt)) + " · " + L10n.Detail.revisitHint
@@ -241,7 +266,7 @@ final class VenueDetailViewController: UIViewController {
         }
         reviewsStackView.isHidden = state.reviews.isEmpty
         emptyReviewsLabel.isHidden = !state.reviews.isEmpty || state.isLoading
-        emptyReviewsLabel.text = L10n.Detail.noReviewsMessage
+        emptyReviewsLabel.text = state.isOffline ? L10n.Detail.reviewsOffline : L10n.Detail.noReviewsMessage
         reviewSortControl.isHidden = state.reviews.count < 2
         loadMoreReviewsButton.isHidden = !state.hasMoreReviews
     }
@@ -318,6 +343,8 @@ final class VenueDetailViewController: UIViewController {
             presentRegistrationPrompt(message: L10n.Account.registeredRequiredReview)
         case .notReviewable:
             showToast(L10n.Errors.message(for: BackendError.venueNotReviewable))
+        case .offline:
+            showToast(L10n.Errors.message(for: BackendError.network))
         }
     }
 

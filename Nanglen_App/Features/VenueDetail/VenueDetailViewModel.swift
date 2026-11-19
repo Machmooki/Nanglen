@@ -13,17 +13,28 @@ final class VenueDetailViewModel {
         var isFavorite = false
         var mediaURLs: [String: URL] = [:]
         var isRegistered = false
+        /// `.offline` when the detail came from the device cache; network actions are disabled then.
+        var source: DataSourceState = .live
 
         var myReview: MyReview? { detail?.myReview }
         /// Signed URL of the place's own 360° photo, once resolved.
         var panoramaURL: URL? { detail?.panoramaPath.flatMap { mediaURLs[$0] } }
         var acceptsReviews: Bool { venue.status.acceptsReviews }
+        var isOffline: Bool { source != .live }
+        /// Same wording pattern as Explore's offline banner.
+        var offlineBannerText: String? {
+            guard case .offline(let cachedAt) = source else { return nil }
+            return cachedAt.map { L10n.Detail.offlineSince(Formatters.relative($0)) } ?? L10n.Detail.offlineBanner
+        }
+        var canWriteReview: Bool { acceptsReviews && !isOffline }
+        var canToggleFavorite: Bool { !isOffline }
     }
 
     enum WriteReviewRoute: Equatable {
         case needsRegistration
         case compose(existing: MyReview?)
         case notReviewable
+        case offline
     }
 
     var onChange: ((State) -> Void)?
@@ -65,15 +76,19 @@ final class VenueDetailViewModel {
         try? await session.start()
         state.isRegistered = session.capabilities?.isRegistered ?? false
         do {
-            let detail = try await venues.detail(id: state.venue.id)
+            let result = try await venues.detail(id: state.venue.id)
+            let detail = result.detail
             var venue = detail.summary
             venue.distanceMeters = state.venue.distanceMeters
             state.venue = venue
             state.detail = detail
             state.isFavorite = detail.isFavorite
-            venues.log("venue_detail_view", venueID: venue.id)
-            await loadReviews(reset: true)
-            await loadMedia(venuePhotos: detail.photoPaths, panorama: detail.panoramaPath)
+            state.source = result.source
+            if result.source == .live {
+                venues.log("venue_detail_view", venueID: venue.id)
+                await loadReviews(reset: true)
+                await loadMedia(venuePhotos: detail.photoPaths, panorama: detail.panoramaPath)
+            }
         } catch {
             state.errorMessage = L10n.Errors.message(for: error)
         }
@@ -114,6 +129,7 @@ final class VenueDetailViewModel {
     }
 
     func toggleFavorite() {
+        guard state.canToggleFavorite else { return } // favorites are never queued offline
         let target = !state.isFavorite
         state.isFavorite = target
         Task {
@@ -130,6 +146,7 @@ final class VenueDetailViewModel {
     }
 
     func writeReviewRoute() -> WriteReviewRoute {
+        guard !state.isOffline else { return .offline }
         guard state.acceptsReviews else { return .notReviewable }
         guard session.capabilities?.isRegistered == true else { return .needsRegistration }
         return .compose(existing: state.myReview)

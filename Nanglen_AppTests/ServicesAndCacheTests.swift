@@ -73,7 +73,8 @@ struct ReviewServiceTests {
         try await registerUser(backend)
         let cache = LocalCache(database: try DatabaseManager.inMemory())
         let repo = ReviewRepository(remote: backend, cache: cache)
-        let service = ReviewService(reviews: repo, configuration: .standard, notifier: DataChangeNotifier())
+        let user = UUID()
+        let service = ReviewService(reviews: repo, configuration: .standard, notifier: DataChangeNotifier(), userID: { user })
         var draft = ReviewDraft(venueID: Fixtures.cafeID)
         draft.rating = 4
         await #expect(throws: BackendError.verificationInvalid) { try await service.publish(draft, verificationID: UUID(), photos: []) }
@@ -124,19 +125,19 @@ struct LocalCacheTests {
         let cache = LocalCache(database: try DatabaseManager.inMemory())
         var draft = ReviewDraft(venueID: Fixtures.cafeID)
         draft.rating = 5
-        try await cache.saveDraft(draft, key: "k")
-        #expect(try await cache.draft(ReviewDraft.self, key: "k")?.rating == 5)
-        try await cache.deleteDraft(key: "k")
-        #expect(try await cache.draft(ReviewDraft.self, key: "k") == nil)
-
         let user = UUID()
+        try await cache.saveDraft(draft, key: "k", userID: user)
+        #expect(try await cache.draft(ReviewDraft.self, key: "k", userID: user)?.rating == 5)
+        try await cache.deleteDraft(key: "k", userID: user)
+        #expect(try await cache.draft(ReviewDraft.self, key: "k", userID: user) == nil)
+
         try await cache.storeFavoriteIDs([Fixtures.cafeID, Fixtures.libraryID], userID: user, at: Fixtures.now)
         #expect(try await cache.cachedFavoriteIDs(userID: user) == [Fixtures.cafeID, Fixtures.libraryID])
         #expect(try await cache.cachedFavoriteIDs(userID: UUID()).isEmpty)
     }
 
     /// Regression: a v1 database with check-ins/favorites must migrate to v2 without FK failures,
-    /// keeping the legacy rows untouched.
+    /// keeping the legacy rows untouched. (v3 later drops them; see `LocalStorageV3Tests`.)
     @Test func v1DatabaseWithLegacyRowsMigratesToV2() throws {
         let path = FileManager.default.temporaryDirectory.appendingPathComponent("nanglen-v1-\(UUID().uuidString).sqlite").path
         defer { try? FileManager.default.removeItem(atPath: path) }
@@ -150,8 +151,10 @@ struct LocalCacheTests {
             try db.execute(sql: "INSERT INTO favorites (id, venue_id, guest_id, created_at) VALUES ('f1', 'v1', 'g1', ?)", arguments: [Date()])
             try db.execute(sql: "INSERT INTO check_ins (id, venue_id, guest_id, is_verified, created_at, expires_at) VALUES ('c1', 'v1', 'g1', 0, ?, ?)", arguments: [Date(), Date().addingTimeInterval(60)])
         }
-        let manager = try DatabaseManager(writer: queue)
-        let tables = try manager.tableNames()
+        try AppDatabaseMigrator.makeMigrator().migrate(queue, upTo: V2CacheAndLegacyArchive.identifier)
+        let tables = try queue.read { db in
+            try String.fetchAll(db, sql: "SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
         #expect(tables.contains("cached_venues"))
         #expect(tables.contains("local_drafts"))
         #expect(try queue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM check_ins") } == 1)
