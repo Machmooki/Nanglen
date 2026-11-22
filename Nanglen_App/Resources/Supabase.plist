@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Local, git-ignored. Base project URL only (no /rest/v1/). Publishable (anon) key only — never service_role. -->
+<plist version="1.0">
+<dict>
+    <key>SUPABASE_URL</key>
+    <string>https://tuufgzbgldtkwaqqxyur.supabase.co</string>
+    <key>SUPABASE_ANON_KEY</key>
+    <string>sb_publishable_7a6oNqs0Mtzgfm0KxWZhZw_qkM1BYpF</string>
+</dict>
+</plist>
